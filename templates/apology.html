@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+
+{% block title %}
+Erro
+{% endblock %}
+
+{% block content %}
+
+<div class="apology-container">
+
+    <h1 class="apology-title">⚠️ Algo deu errado</h1>
+
+    <p class="apology-message">
+        {{ mensagem }}
+    </p>
+
+    <a href="/" class="apology-button">
+        Voltar para o início
+    </a>
+
+</div>
+
+{% endblock %}

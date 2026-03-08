@@ -1,0 +1,36 @@
+{% extends "layout.html" %}
+
+{% block title %}Historico{% endblock %}
+
+{% block content %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nome cripto</th>
+                <th>Tipo de transação</th>
+                <th>Quantidade</th>
+                <th>Preço de transação</th>
+                <th>Data de transação</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in transactions %}
+                <tr>
+                    <td>{{ row["nm_crypto"] | crypto_name_format }}</td>
+
+                    <td>
+                        {% if row["tp_transacao"] == "BUY" %}
+                            Compra
+                        {% else %}
+                            Venda
+                        {% endif %}
+                    </td>
+
+                    <td>{{ row["qt_crypto"] }}</td>
+                    <td>{{ row["vl_unitario_usd"] | usd }}</td>
+                    <td>{{ row["dt_transacao"] }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

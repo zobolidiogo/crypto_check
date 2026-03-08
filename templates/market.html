@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+
+{% block title %}Mercado{% endblock %}
+
+{% block content %}
+    <h2>Criptomoedas disponíveis para compra</h2>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Preco unitário</th>
+                <th>Mais detalhes</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for crypto in estoques %}
+                <tr>
+                    <td>{{ crypto["nome"] | crypto_name_format }}</td>
+                    <td>{{ crypto["preco"] | usd }}</td>
+                    <td>
+                        <a href="/market/{{ crypto['nome'] }}" class="link">
+                            Mais detalhes
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

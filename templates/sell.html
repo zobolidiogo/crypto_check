@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+
+{% block title %}Vender {{ crypto | crypto_name_format }}{% endblock %}
+
+{% block content %}
+<h1>Vender {{ crypto | crypto_name_format }}</h1>
+<p>Preço atual: {{ preco | usd }}</p>
+
+<form action="/sell/{{ crypto }}" method="post">
+    <div class="formulario">
+        <input type="number" autofocus class="pergunta" name="quantidade_venda" min="1" placeholder="Quantidade a vender">
+    </div>
+    <button type="submit">Vender</button>
+</form>
+
+{% endblock %}

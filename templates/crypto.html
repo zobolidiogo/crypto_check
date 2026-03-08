@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ crypto }}{% endblock %}
+
+{% block content %}
+<h1>{{ crypto | crypto_name_format }}</h1>
+<p>Preço atual: {{ preco | usd }}</p>
+<a href="/buy/{{ crypto }}" class="link">Comprar Criptomoeda</a>
+
+<div class="dashboard">
+    <div class="card" id="principal">
+        <h3>Preço atual</h3>
+        <p>{{ preco | usd }}</p>
+    </div>
+
+    <div class="card">
+        <h3>Maior preço nos últimos 30 dias</h3>
+        <p>{{ max_preco | usd }}</p>
+    </div>
+
+    <div class="card">
+        <h3>Menor preço nos últimos 30 dias</h3>
+        <p>{{ min_preco | usd }}</p>
+    </div>
+</div>
+
+<div class="chart-container">
+    <canvas id="grafico_precos"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const historia = {{ historico | tojson }};
+    const nomeCrypto = "{{ crypto }}";
+</script>
+
+<script src="/static/chart.js"></script>
+
+{% endblock %}
