@@ -8,28 +8,30 @@
 {% if mensagem != "" %}
     <p>{{ mensagem }}</p>
 {% else %}
-<table class="table">
-    <thead>
-        <tr>
-            <th>Criptomoeda</th>
-            <th>Total de cyptos</th>
-            <th>Preco unitário</th>
-            <th>Valor total</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for crypto in portfolio %}
-        <tr>
-            <td>{{ crypto["nm_crypto"] }}</td>
-            <td>{{ crypto["qt_compras"] }}</td>
-            <td>{{ crypto["preco"] | usd }}</td>
-            <td>{{ crypto["valor_total"] | usd }}</td>
-            <th><a href="/sell/{{ crypto['nm_crypto'] }}" class="link">Vender</a></th>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Criptomoeda</th>
+                    <th>Total de cyptos</th>
+                    <th>Preco unitário</th>
+                    <th>Valor total</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for crypto in portfolio %}
+                <tr>
+                    <td>{{ crypto["nm_crypto"] }}</td>
+                    <td>{{ crypto["qt_compras"] }}</td>
+                    <td>{{ crypto["preco"] | usd }}</td>
+                    <td>{{ crypto["valor_total"] | usd }}</td>
+                    <th><a href="/sell/{{ crypto['nm_crypto'] }}" class="link">Vender</a></th>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 {% endif %}
 
 <h3>Saldo disponível: {{ dinheiro | usd }}</h3>

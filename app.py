@@ -269,3 +269,7 @@ def sell(crypto):
 def history():
     transactions = db.execute("select nm_crypto, qt_crypto, vl_unitario_usd, tp_transacao, dt_transacao from T_TRANSACAO where id_usuario = ? order by dt_transacao desc", session["id_usuario"])
     return render_template("history.html", transactions=transactions)
+
+@app.route("/about")
+def about():
+    return render_template("about.html")

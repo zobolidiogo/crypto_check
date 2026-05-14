@@ -24,7 +24,7 @@ A aplicação está disponível online através do Render:
 
 ## O Desafio
 
-Criar uma aplicação web completa que permitisse aos usuários praticar investimentos em criptomoedas sem risco financeiro, integrando cotações reais de mercado, gerenciamento de portfólio, histórico de transações e visualização de dados através de uma interface intuitiva e responsiva.
+Criar uma aplicação web completa que permitisse aos usuários praticar investimentos em criptomoedas sem risco financeiro, integrando cotações reais de mercado, gerenciamento de portfólio, histórico de transações e visualização de dados através de uma interface intuitiva, responsiva e acessível em diferentes dispositivos.
 
 ---
 
@@ -77,6 +77,13 @@ Os preços são atualizados em tempo real via APIs públicas.
 - Estatísticas de preço máximo e mínimo
 - Visualização interativa utilizando Chart.js
 
+### Navegação e Interface
+
+- Página "Sobre" com informações do projeto
+- Layout responsivo para desktop e mobile
+- Interface adaptada para diferentes resoluções
+- Navegação simplificada e intuitiva
+
 ### Integrações API
 
 - CoinPaprika API para cotações em tempo real
@@ -100,6 +107,7 @@ Responsável por:
 - Histórico de transações
 - Integração com PostgreSQL
 - Controle de sessões
+- Rota `/about`
 
 #### `helpers.py`
 
@@ -150,6 +158,11 @@ Contém:
 - Histórico
 - Login
 - Registro
+- Página About
+
+### Responsividade
+
+O CSS da aplicação foi ajustado para melhorar a experiência em diferentes dispositivos e resoluções, tornando a navegação mais fluida em telas menores.
 
 ### Chart.js
 
@@ -183,6 +196,7 @@ crypto_check/
     ├── history.html
     ├── login.html
     ├── register.html
+    ├── about.html
     └── apology.html
 ```
 
@@ -338,6 +352,13 @@ SECRET_KEY=your_secret_key
 - Configuração segura
 - Estrutura preparada para produção
 
+### Experiência do Usuário
+
+- Interface responsiva
+- Navegação simplificada
+- Página informativa sobre o projeto
+- Melhor adaptação para dispositivos móveis
+
 ---
 
 ## Melhorias Futuras
@@ -349,7 +370,6 @@ SECRET_KEY=your_secret_key
 - Testes automatizados
 - Cache de preços
 - API própria
-- Responsividade aprimorada
 - Sistema de ranking de usuários
 
 ---
@@ -369,6 +389,8 @@ Este projeto consolidou conhecimentos em:
 - Organização de código
 - Configuração de ambiente
 - Arquitetura web
+- Responsividade
+- Estruturação de aplicações web em produção
 
 Projeto desenvolvido como Final Project do **CS50x: Introduction to Computer Science** da Harvard University.
 
