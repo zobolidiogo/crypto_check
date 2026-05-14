@@ -8,9 +8,12 @@
 
 <form action="/sell/{{ crypto }}" method="post">
     <div class="formulario">
-        <input type="number" autofocus class="pergunta" name="quantidade_venda" min="0.00001" step="0.00001" placeholder="Quantidade a vender">
+        <input type="number" autofocus class="pergunta" id="quantidade" name="quantidade_venda" min="0.00001" step="0.00001" placeholder="Quantidade a vender" data-preco="{{ preco }}">
     </div>
     <button type="submit">Vender</button>
 </form>
+<p id="total"></p>
+
+<script src="/static/trade.js"></script>
 
 {% endblock %}
