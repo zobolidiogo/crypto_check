@@ -203,11 +203,11 @@ def buy(crypto):
         return apology("quantidade é obrigatória")
 
     try:
-        quantidade = int(quantidade)
+        quantidade = float(quantidade)
         if quantidade <= 0:
             raise ValueError
     except (ValueError, TypeError):
-        return apology("quantidade deve ser um número inteiro positivo")
+        return apology("quantidade deve ser um número positivo")
     
     row_usuario = db.execute("select qt_dinheiro from T_USUARIO where id_usuario = ?", session["id_usuario"])
     dinheiro = row_usuario[0]["qt_dinheiro"]
@@ -249,11 +249,11 @@ def sell(crypto):
         return apology("quantidade de venda é obrigatória")
 
     try:
-        quantidade_venda = int(quantidade_venda)
+        quantidade_venda = float(quantidade_venda)
         if quantidade_venda <= 0:
             raise ValueError
     except (ValueError, TypeError):
-        return apology("quantidade de venda deve ser um número inteiro positivo")
+        return apology("quantidade de venda deve ser um número positivo")
 
     if quantidade_venda > quantidade_possui:
         return apology("você não possui esta quantidade da criptomoeda para vender")

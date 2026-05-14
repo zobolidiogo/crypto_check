@@ -23,7 +23,7 @@
                 {% for crypto in portfolio %}
                 <tr>
                     <td>{{ crypto["nm_crypto"] }}</td>
-                    <td>{{ crypto["qt_compras"] }}</td>
+                    <td>{{ "{:,.5f}".format(crypto["qt_compras"]).rstrip('0').rstrip('.') }}</td>
                     <td>{{ crypto["preco"] | usd }}</td>
                     <td>{{ crypto["valor_total"] | usd }}</td>
                     <th><a href="/sell/{{ crypto['nm_crypto'] }}" class="link">Vender</a></th>

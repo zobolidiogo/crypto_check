@@ -27,7 +27,7 @@
                             {% endif %}
                         </td>
 
-                        <td>{{ row["qt_crypto"] }}</td>
+                        <td>{{ "{:,.5f}".format(row["qt_crypto"]).rstrip('0').rstrip('.') }}</td>
                         <td>{{ row["vl_unitario_usd"] | usd }}</td>
                         <td>{{ row["dt_transacao"] }}</td>
                     </tr>
