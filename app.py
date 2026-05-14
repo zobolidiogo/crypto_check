@@ -5,9 +5,12 @@ from cs50 import SQL
 from flask import Flask, redirect, render_template, request, session
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.urandom(24)
+app.secret_key = os.getenv("SECRET_KEY")
 
 app.jinja_env.filters["usd"] = usd
 app.jinja_env.filters["brl"] = brl
@@ -17,8 +20,8 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
-db = SQL("sqlite:///crypto.db")
-db.execute("PRAGMA foreign_keys = ON")
+db = SQL(os.getenv("DATABASE_URL"))
+# db.execute("PRAGMA foreign_keys = ON")
 
 cryptos = ["btc-bitcoin", "usdt-tether", "eth-ethereum", "sol-solana", "ada-cardano", "xrp-xrp", "doge-dogecoin"]
 
@@ -109,7 +112,7 @@ def logout():
 @login_required
 def index():
     
-    rows = db.execute("select nm_crypto, sum(qt_crypto) as qt_compras from T_TRANSACAO where id_usuario = ? group by nm_crypto having qt_compras > 0", session["id_usuario"])
+    rows = db.execute("select nm_crypto, sum(qt_crypto) as qt_compras from T_TRANSACAO where id_usuario = ? group by nm_crypto having sum(qt_crypto) > 0", session["id_usuario"])
     portfolio = []   
     total = 0
 
