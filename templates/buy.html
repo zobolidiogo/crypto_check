@@ -5,6 +5,8 @@
 {% block content %}
 <h1>Comprar {{ crypto | crypto_name_format }}</h1>
 <p>Preço atual: {{ preco | usd }}</p>
+<br>
+<p>Dinheiro disponível: {{ dinheiro | usd }}</p>
 
 <form action="/buy/{{ crypto }}" method="post">
     <div class="formulario">
@@ -12,6 +14,7 @@
     </div>
     <button type="submit">Comprar</button>
 </form>
+<br>
 <p id="total"></p>
 
 <script src="/static/trade.js"></script>
