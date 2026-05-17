@@ -1,6 +1,6 @@
 import os
 
-from helpers import apology, crypto_history_format_day, crypto_price_now, login_required, usd, brl, val_nome, val_senha, crypto_name_format
+from helpers import tirar_hifem, index_crypto_func, apology, crypto_history_format_day, crypto_price_now, login_required, usd, brl, val_nome, val_senha, crypto_name_format
 from cs50 import SQL
 from flask import Flask, redirect, render_template, request, session
 from flask_session import Session
@@ -111,35 +111,60 @@ def logout():
 @app.route("/")
 @login_required
 def index():
-    
-    rows = db.execute("select nm_crypto, sum(qt_crypto) as qt_compras from T_TRANSACAO where id_usuario = ? group by nm_crypto having sum(qt_crypto) > 0", session["id_usuario"])
-    portfolio = []   
+
+    rows = db.execute("""
+        select nm_crypto, sum(qt_crypto) as qt_compras
+        from T_TRANSACAO
+        where id_usuario = ?
+        group by nm_crypto
+        having sum(qt_crypto) > 0
+    """, session["id_usuario"])
+
+    portfolio = []
     total = 0
+    linha = []
+    moeda = "usd"
 
     for row in rows:
-        preco = crypto_price_now(row["nm_crypto"])
+        crypto = tirar_hifem(row["nm_crypto"])
+        linha.append(crypto)
 
-        if preco is None:
+    precos = index_crypto_func(linha=",".join(linha), moeda=moeda)
+
+    # exemplo: {"bitcoin": {"usd": 78088}, "solana": {"usd": 86.19}}
+
+    for row in rows:
+
+        crypto = tirar_hifem(row["nm_crypto"])
+
+        if crypto not in precos:
             continue
-        
+
+        preco = precos[crypto][moeda]
+
         valor_total = preco * row["qt_compras"]
+
         total += valor_total
 
-        portfolio.append(
-            {
-                "nm_crypto": row["nm_crypto"],
-                "qt_compras": row["qt_compras"],
-                "preco": preco,
-                "valor_total": valor_total
-            }
-        )
+        portfolio.append({
+            "nm_crypto": row["nm_crypto"],
+            "qt_compras": row["qt_compras"],
+            "preco": preco,
+            "valor_total": valor_total
+        })
 
     mensagem = ""
+
     if not portfolio:
         mensagem = "Você não possui nenhuma compra"
-    
-    row_dinheiro = db.execute("select qt_dinheiro from T_USUARIO where id_usuario = ?", session["id_usuario"])
+
+    row_dinheiro = db.execute(
+        "select qt_dinheiro from T_USUARIO where id_usuario = ?",
+        session["id_usuario"]
+    )
+
     dinheiro = row_dinheiro[0]["qt_dinheiro"]
+
     total += dinheiro
 
     return render_template("index.html", portfolio=portfolio, total=total, dinheiro=dinheiro, mensagem=mensagem)
@@ -147,17 +172,36 @@ def index():
 @app.route("/market")
 @login_required
 def market():
-        
+
+    moeda = "usd"
+
     estoques = []
 
+    cryptos_arrumado = []
+
     for crypto in cryptos:
+
+        cryptos_arrumado.append(tirar_hifem(crypto))
+
+    precos = index_crypto_func(linha=",".join(cryptos_arrumado), moeda=moeda)
+
+    if precos is None:
+        return apology("não foi possível obter preços")
+
+    for crypto in cryptos:
+
+        nome_api = tirar_hifem(crypto)
+
+        if nome_api not in precos:
+            continue
+
         estoque = {
             "nome": crypto,
-            "preco": crypto_price_now(crypto)
+            "preco": precos[nome_api][moeda]
         }
-        if estoque:
-            estoques.append(estoque)
-    
+
+        estoques.append(estoque)
+
     return render_template("market.html", estoques=estoques)
 
 @app.route("/market/<crypto>")
@@ -167,8 +211,8 @@ def pagina_crypto(crypto):
     if crypto not in cryptos:
         return apology("cripto inválida")
     
-    historico = crypto_history_format_day(crypto.split("-")[1])
-    preco = crypto_price_now(crypto)
+    historico = crypto_history_format_day(tirar_hifem(crypto))
+    preco = historico[-1]["preco"]
     
     precos = []
 
@@ -188,15 +232,18 @@ def pagina_crypto(crypto):
 @login_required
 def buy(crypto):
 
+    row_usuario = db.execute("select qt_dinheiro from T_USUARIO where id_usuario = ?", session["id_usuario"])
+    dinheiro = row_usuario[0]["qt_dinheiro"]
+
     if crypto not in cryptos:
         return apology("cripto inválida")
     
-    preco = crypto_price_now(crypto)
+    preco = crypto_history_format_day(tirar_hifem(crypto))[-1]["preco"]
     if preco is None:
         return apology("não foi possível obter o preço da criptomoeda")
 
     if request.method == "GET":
-        return render_template("buy.html", crypto=crypto, preco=preco)
+        return render_template("buy.html", dinheiro=dinheiro, crypto=crypto, preco=preco)
     
     quantidade = request.form.get("quantidade")
     if not quantidade:
@@ -208,9 +255,6 @@ def buy(crypto):
             raise ValueError
     except (ValueError, TypeError):
         return apology("quantidade deve ser um número positivo")
-    
-    row_usuario = db.execute("select qt_dinheiro from T_USUARIO where id_usuario = ?", session["id_usuario"])
-    dinheiro = row_usuario[0]["qt_dinheiro"]
 
     custo_total = preco * quantidade
 
@@ -229,7 +273,8 @@ def sell(crypto):
     if crypto not in cryptos:
         return apology("cripto inválida")
     
-    preco = crypto_price_now(crypto)
+    preco = crypto_history_format_day(tirar_hifem(crypto))[-1]["preco"]
+
     if preco is None:
         return apology("não foi possível obter o preço da criptomoeda")
     

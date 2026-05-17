@@ -8,9 +8,22 @@ from functools import wraps
 def crypto_name_format(nm_crypto):
     return nm_crypto.split("-")[1].capitalize()
 
+def tirar_hifem(nm_moeda):
+    return nm_moeda.split("-")[1]
+
 def apology(mensagem):
     return render_template("apology.html", mensagem=mensagem)
 
+def index_crypto_func(linha, moeda="usd"):
+    url = f"https://api.coingecko.com/api/v3/simple/price?ids={linha}&vs_currencies={moeda}"
+    try:
+        resposta = requests.get(url)
+        resposta.raise_for_status()
+        dados = resposta.json()
+        return dados
+    except requests.RequestException as re:
+        print(f"Erro de pedido: {re}")
+    return None
 
 def crypto_price_now(nm_crypto, moeda="usd"):
     
