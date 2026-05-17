@@ -1,6 +1,6 @@
 import os
 
-from helpers import tirar_hifem, index_crypto_func, apology, crypto_history_format_day, crypto_price_now, login_required, usd, brl, val_nome, val_senha, crypto_name_format
+from helpers import tirar_hifem, index_crypto_func, apology, crypto_history_format_day, login_required, usd, brl, val_nome, val_senha, crypto_name_format
 from cs50 import SQL
 from flask import Flask, redirect, render_template, request, session
 from flask_session import Session

@@ -42,7 +42,7 @@ Usuários iniciam com $10.000 virtuais e podem negociar 7 criptomoedas principai
 - XRP
 - Dogecoin
 
-Os preços são atualizados em tempo real via APIs públicas.
+Os preços são atualizados em tempo real via CoinGecko API, utilizando consultas otimizadas em lote para reduzir o número de requisições externas e melhorar a performance da aplicação.
 
 ---
 
@@ -55,7 +55,7 @@ Os preços são atualizados em tempo real via APIs públicas.
 - Gerenciamento de sessões server-side
 - Controle de autenticação
 
-### Gestão de Portfolio
+### Gestão de Portfólio
 
 - Dashboard interativo mostrando ativos do usuário
 - Cálculo automático do valor total da carteira
@@ -86,9 +86,9 @@ Os preços são atualizados em tempo real via APIs públicas.
 
 ### Integrações API
 
-- CoinPaprika API para cotações em tempo real
-- CoinGecko API para histórico de preços
-- Tratamento de falhas e timeouts
+- CoinGecko API centralizada para cotações atuais e dados históricos
+- Consultas otimizadas em lote (*batch requests*) para prevenção de *rate limits*
+- Tratamento de falhas, erros externos e *timeouts*
 
 ---
 
@@ -102,7 +102,7 @@ Responsável por:
 
 - Rotas da aplicação
 - Sistema de autenticação
-- Sistema de portfolio
+- Sistema de portfólio com agregação de dados pré-request
 - Compra e venda de criptomoedas
 - Histórico de transações
 - Integração com PostgreSQL
@@ -113,8 +113,8 @@ Responsável por:
 
 Contém:
 
-- Busca de preços em tempo real
-- Histórico de criptomoedas
+- Centralização de consultas em lote via endpoint `/simple/price` da CoinGecko
+- Busca de dados históricos de criptomoedas via endpoint `market_chart`
 - Validação de usuários e senhas
 - Decorators de autenticação
 - Funções auxiliares de formatação
@@ -177,7 +177,7 @@ Utilizado para:
 ## Estrutura de Arquivos
 
 ```txt
-crypto_check/
+crypto-check/
 ├── app.py
 ├── helpers.py
 ├── requirements.txt
@@ -298,8 +298,7 @@ SECRET_KEY=your_secret_key
 
 ### APIs Externas
 
-- CoinPaprika API
-- CoinGecko API
+- CoinGecko API (Preços em tempo real e histórico)
 
 ### Infraestrutura & Deploy
 
@@ -326,11 +325,13 @@ SECRET_KEY=your_secret_key
 
 ## Diferenciais do Projeto
 
-### Integração de APIs
+### Otimização e Consumo de API
 
-- Dados em tempo real
-- Histórico de preços
-- Tratamento de falhas externas
+- **Redução de Chamadas Desnecessárias:** substituição do modelo antigo de requisições individuais por uma arquitetura centralizada, eliminando requests repetidas por página.
+
+- **Consultas em Lote (Batching):** utilização estratégica do endpoint `/simple/price` da CoinGecko, permitindo que páginas como `market` e `index` realizem apenas uma única requisição para coletar todos os dados necessários. O processamento passa a ser feito localmente, reduzindo dependências externas e mitigando problemas com *rate limits*.
+
+- **Padronização da Camada de Dados:** consolidação de preços atuais e históricos em um único provedor de API, tornando o backend mais simples, consistente e fácil de manter.
 
 ### Arquitetura Modular
 
@@ -368,7 +369,9 @@ SECRET_KEY=your_secret_key
 - Mais criptomoedas
 - Dockerização
 - Testes automatizados
-- Cache de preços
+- Implementação de sistema de cache de preços (em memória ou Redis)
+- Mecanismo de atualização periódica de preços via background jobs
+- Otimização contínua para redução de chamadas externas e melhor gerenciamento de *rate limits*
 - API própria
 - Sistema de ranking de usuários
 
@@ -400,8 +403,8 @@ Projeto desenvolvido como Final Project do **CS50x: Introduction to Computer Sci
 
 **Diogo Zoboli**
 
-- GitHub: [github.com/zobolidiogo](https://github.com/zobolidiogo)
-- LinkedIn: [linkedin.com/in/zobolidiogo](https://linkedin.com/in/zobolidiogo)
+- GitHub: https://github.com/zobolidiogo
+- LinkedIn: https://linkedin.com/in/zobolidiogo
 
 ---
 
