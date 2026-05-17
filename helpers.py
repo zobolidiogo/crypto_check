@@ -25,34 +25,6 @@ def index_crypto_func(linha, moeda="usd"):
         print(f"Erro de pedido: {re}")
     return None
 
-def crypto_price_now(nm_crypto, moeda="usd"):
-    
-    url = f"https://api.coinpaprika.com/v1/tickers/{nm_crypto}?quotes={moeda}"
-    try:
-        
-        resposta = requests.get(url)
-        resposta.raise_for_status()
-        dados = resposta.json()
-
-        if not "quotes" in dados:
-            return None
-
-        preco = dados["quotes"][moeda.upper()]["price"]
-
-        preco_formatado = Decimal(preco).quantize(Decimal("0.01"), rounding=ROUND_DOWN)
-        return float(preco_formatado)
-    
-    except requests.RequestException as re:
-        print(f"Erro de pedido: {re}")
-    except (KeyError, ValueError) as kv:
-        print(f"Erro de dados: {kv}")
-
-    return None
-    """
-    exemplo de retorno:
-    908900
-    """
-
 def crypto_history_format_day(nm_crypto, moeda="usd", dias=30):
     
     url = f"https://api.coingecko.com/api/v3/coins/{nm_crypto}/market_chart?vs_currency={moeda}&days={dias}"
