@@ -177,10 +177,11 @@ Utilizado para:
 ## Estrutura de Arquivos
 
 ```txt
-crypto-check/
+crypto_check/
 ├── app.py
 ├── helpers.py
 ├── requirements.txt
+├── schema.sql
 ├── .env.example
 ├── static/
 │   ├── chart.js
@@ -202,38 +203,76 @@ crypto-check/
 
 ---
 
+## `schema.sql`
+
+Arquivo responsável pela criação da estrutura inicial do banco PostgreSQL da aplicação, incluindo:
+
+- Tabelas
+- Chaves primárias
+- Relacionamentos
+- Constraints
+
+---
+
 ## Como Reproduzir o Projeto
 
 ### Pré-requisitos
 
 - Python
 - pip
+- Conta no Supabase
 
 ---
 
 ### 1. Clone o repositório
 
 ```bash
-git clone https://github.com/zobolidiogo/crypto-check.git
-cd crypto-check
+git clone https://github.com/zobolidiogo/crypto_check.git
+cd crypto_check
 ```
 
 ---
 
-### 2. Crie um arquivo `.env`
+### 2. Crie um projeto no Supabase
+
+1. Acesse o https://supabase.com
+2. Crie um novo projeto
+3. Aguarde a inicialização do banco PostgreSQL
+4. Vá em:
+
+```txt
+Project Settings → Database
+```
+
+5. Copie a connection string do banco PostgreSQL
+
+---
+
+### 3. Execute o `schema.sql`
+
+1. Abra o menu **SQL Editor** no Supabase
+2. Crie uma nova query
+3. Cole o conteúdo do arquivo `schema.sql`
+4. Execute o script para criar as tabelas da aplicação
+
+---
+
+### 4. Crie um arquivo `.env`
 
 Baseado no `.env.example`:
 
 ```env
-DATABASE_URL=postgresql://postgres:your_password@host:5432/postgres
-SECRET_KEY=your_secret_key_here
+DATABASE_URL=postgresql://usuario:SUA_SENHA@host:5432/postgres
+SECRET_KEY=sua_secret_key
 ```
+
+> Substitua `SUA_SENHA` pela senha definida no Supabase durante a criação do projeto.
 
 > O arquivo `.env` não deve ser enviado para o GitHub, pois contém credenciais sensíveis da aplicação.
 
 ---
 
-### 3. Instale as dependências
+### 5. Instale as dependências
 
 ```bash
 pip install -r requirements.txt
@@ -241,7 +280,7 @@ pip install -r requirements.txt
 
 ---
 
-### 4. Execute a aplicação
+### 6. Execute a aplicação
 
 ```bash
 flask run
@@ -249,7 +288,7 @@ flask run
 
 ---
 
-### 5. Acesse no navegador
+### 7. Acesse no navegador
 
 ```txt
 http://127.0.0.1:5000
