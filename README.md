@@ -177,7 +177,7 @@ Utilizado para:
 ## Estrutura de Arquivos
 
 ```txt
-crypto-check/
+crypto_check/
 ├── app.py
 ├── helpers.py
 ├── requirements.txt
@@ -227,8 +227,8 @@ Arquivo responsável pela criação da estrutura inicial do banco PostgreSQL da 
 ### 1. Clone o repositório
 
 ```bash
-git clone https://github.com/zobolidiogo/crypto-check.git
-cd crypto-check
+git clone https://github.com/zobolidiogo/crypto_check.git
+cd crypto_check
 ```
 
 ---
