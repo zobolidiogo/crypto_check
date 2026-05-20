@@ -133,6 +133,9 @@ def index():
 
     # exemplo: {"bitcoin": {"usd": 78088}, "solana": {"usd": 86.19}}
 
+    if precos is None:
+        return apology("não foi possível obter preços")
+
     for row in rows:
 
         crypto = tirar_hifem(row["nm_crypto"])

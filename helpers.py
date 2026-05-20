@@ -1,9 +1,11 @@
 import requests
+import time
 
 from datetime import datetime
 from flask import render_template, session, redirect
 from decimal import Decimal, InvalidOperation, ROUND_DOWN
 from functools import wraps
+
 
 def crypto_name_format(nm_crypto):
     return nm_crypto.split("-")[1].capitalize()
