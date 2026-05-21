@@ -1,11 +1,23 @@
 import requests
 import time
+import os
 
+from dotenv import load_dotenv
 from datetime import datetime
 from flask import render_template, session, redirect
 from decimal import Decimal, InvalidOperation, ROUND_DOWN
 from functools import wraps
 
+load_dotenv()
+
+keys = {
+    "x-cg-demo-api-key": os.getenv("COINGECKO_API_KEY")
+}
+
+BASE_COINGECKO_CALL = "https://api.coingecko.com/api/v3"
+
+session_requests = requests.Session()
+session_requests.headers.update(keys)
 
 def crypto_name_format(nm_crypto):
     return nm_crypto.split("-")[1].capitalize()
@@ -17,9 +29,9 @@ def apology(mensagem):
     return render_template("apology.html", mensagem=mensagem)
 
 def index_crypto_func(linha, moeda="usd"):
-    url = f"https://api.coingecko.com/api/v3/simple/price?ids={linha}&vs_currencies={moeda}"
+    url = f"{BASE_COINGECKO_CALL}/simple/price?ids={linha}&vs_currencies={moeda}"
     try:
-        resposta = requests.get(url)
+        resposta = session_requests.get(url)
         resposta.raise_for_status()
         dados = resposta.json()
         return dados
@@ -32,7 +44,7 @@ def crypto_history_format_day(nm_crypto, moeda="usd", dias=30):
     url = f"https://api.coingecko.com/api/v3/coins/{nm_crypto}/market_chart?vs_currency={moeda}&days={dias}"
     
     try:
-        resposta = requests.get(url)
+        resposta = session.requests.get(url)
         resposta.raise_for_status()
         dados = resposta.json()
 
