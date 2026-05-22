@@ -76,6 +76,9 @@ def register():
 @app.route("/login", methods=["GET", "POST"])
 def login():
 
+    if session.get("id_usuario"):
+        return redirect("/")
+    
     session.clear()
 
     if request.method == "GET":
@@ -172,7 +175,6 @@ def index():
     return render_template("index.html", portfolio=portfolio, total=total, dinheiro=dinheiro, mensagem=mensagem)
 
 @app.route("/market")
-@login_required
 def market():
 
     moeda = "usd"
@@ -207,7 +209,6 @@ def market():
     return render_template("market.html", estoques=estoques)
 
 @app.route("/market/<crypto>")
-@login_required
 def pagina_crypto(crypto):
     
     if crypto not in cryptos:
