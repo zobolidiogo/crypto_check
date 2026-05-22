@@ -4,7 +4,8 @@
 
 {% block content %}
 <h1>{{ crypto }}</h1>
-<h2>Preço atual: {{ preco | usd }}</h2>
+<h3>Preço atual: {{ preco | usd }}</h3>
+<br>
 {% if session.get("id_usuario") %}
     <a href="/buy/{{ crypto }}" class="link">Comprar Criptomoeda</a>
     <br>
