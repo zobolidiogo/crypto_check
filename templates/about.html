@@ -6,44 +6,98 @@ Sobre
 
 {% block content %}
 
-<div class="apology-container">
+<div class="about-container">
 
-    <h1 class="apology-title">Sobre o crypto.check</h1>
+    <h1 class="about-title">Sobre o crypto.check</h1>
 
-    <p class="apology-message">
-        O crypto.check é uma plataforma web desenvolvida para simular investimentos em criptomoedas utilizando dados reais de mercado.
+    <p class="about-text">
+        O crypto.check é uma plataforma web desenvolvida para simulação de investimentos em criptomoedas utilizando dados reais de mercado em tempo real.
+        O projeto foi criado com o objetivo de unir desenvolvimento full-stack, análise de dados e experiência do usuário em uma aplicação prática e funcional.
     </p>
 
-    <p class="apology-message">
-        O projeto foi criado como Final Project do CS50x (Harvard University) com foco em desenvolvimento full-stack, integração de APIs e visualização de dados.
+    <p class="about-text">
+        A aplicação foi desenvolvida como projeto final do curso CS50x — Introduction to Computer Science, da Harvard University.
+        Durante o desenvolvimento, o foco principal foi construir uma plataforma completa, integrando backend, banco de dados, autenticação de usuários,
+        consumo de APIs externas e visualização dinâmica de dados financeiros.
     </p>
 
-    <p class="apology-message">
-        A aplicação utiliza Flask no backend, PostgreSQL e Supabase como banco de dados em nuvem e APIs públicas para atualização de preços em tempo real.
+    <p class="about-text">
+        O sistema permite que usuários criem contas, realizem compras e vendas simuladas de criptomoedas,
+        acompanhem seu portfólio virtual e visualizem o histórico completo de transações realizadas.
+        Além disso, a plataforma exibe informações atualizadas do mercado cripto, incluindo preços em tempo real
+        e gráficos históricos interativos.
     </p>
 
-    <p class="apology-message">
-        Usuários podem criar contas, comprar e vender criptomoedas virtualmente, acompanhar histórico de transações e visualizar gráficos interativos de mercado.
+    <p class="about-text">
+        Os dados das criptomoedas são obtidos através de APIs públicas de mercado, permitindo que os preços exibidos
+        reflitam oscilações reais do mercado financeiro. Dessa forma, o projeto busca oferecer uma experiência próxima
+        de uma plataforma real de investimentos, mas voltada para fins educacionais e de aprendizado.
     </p>
 
-    <p class="apology-message">
-        Tecnologias utilizadas:
-        <br>
-        Python • Flask • PostgreSQL • Supabase • JavaScript • Chart.js
+    <p class="about-text">
+        No backend, a aplicação utiliza Python com Flask para gerenciamento de rotas, autenticação de usuários,
+        regras de negócio e integração com banco de dados. O armazenamento das informações é realizado com PostgreSQL,
+        hospedado em nuvem através do Supabase.
     </p>
 
-    <a href="/" class="apology-button">
-        Voltar para o início
-    </a>
+    <p class="about-text">
+        Já no frontend, foram utilizados HTML, CSS e JavaScript para construção da interface,
+        juntamente com Chart.js para renderização de gráficos interativos de preços e evolução de mercado.
+        O projeto também possui foco em responsividade, organização visual e experiência do usuário.
+    </p>
 
-    <a href="https://github.com/zobolidiogo/crypto_check" target="_blank" class="apology-button">
-        Repositório no GitHub
-    </a>
+    <p class="about-text">
+        Entre as principais funcionalidades do sistema estão:
+    </p>
 
-    <a href="https://zobolidiogo.github.io/portfolio" target="_blank" class="apology-button">
-        Sobre o Autor
-    </a>
+    <ul class="about-list">
+        <li>Cadastro e autenticação de usuários</li>
+        <li>Simulação de compra e venda de criptomoedas</li>
+        <li>Controle de saldo virtual</li>
+        <li>Histórico completo de transações</li>
+        <li>Visualização de portfólio</li>
+        <li>Integração com APIs de mercado</li>
+        <li>Gráficos interativos de preços</li>
+        <li>Atualização de dados em tempo real</li>
+    </ul>
+
+    <p class="about-text">
+        O crypto.check representa não apenas um projeto acadêmico, mas também uma aplicação prática voltada ao aprendizado
+        de desenvolvimento web, engenharia de software e manipulação de dados financeiros.
+        O projeto continua em evolução, com melhorias constantes de interface, performance e novas funcionalidades.
+    </p>
+
+    <div class="about-tech">
+        <h2>Tecnologias utilizadas</h2>
+
+        <div class="about-tech-grid">
+            <span>Python</span>
+            <span>Flask</span>
+            <span>Jinja</span>
+            <span>PostgreSQL</span>
+            <span>Supabase</span>
+            <span>JavaScript</span>
+            <span>Chart.js</span>
+            <span>HTML</span>
+            <span>CSS</span>
+            <span>Render</span>
+            <span>CoinGecko API</span>
+        </div>
+    </div>
+
+    <div class="about-buttons">
+
+        <a href="/" class="apology-button">
+            Voltar para o início
+        </a>
+
+        <a href="https://github.com/zobolidiogo/crypto_check"
+        target="_blank"
+        class="apology-button">
+            Repositório no GitHub
+        </a>
+
+    </div>
 
 </div>
-
 {% endblock %}

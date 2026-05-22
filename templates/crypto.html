@@ -3,9 +3,16 @@
 {% block title %}{{ crypto }}{% endblock %}
 
 {% block content %}
-<h1>{{ crypto | crypto_name_format }}</h1>
-<p>Preço atual: {{ preco | usd }}</p>
-<a href="/buy/{{ crypto }}" class="link">Comprar Criptomoeda</a>
+<h1>{{ crypto }}</h1>
+<h3>Preço atual: {{ preco | usd }}</h3>
+<br>
+{% if session.get("id_usuario") %}
+    <a href="/buy/{{ crypto }}" class="link">Comprar Criptomoeda</a>
+    <br>
+{% else %}
+    <p>Para comprar criptomoedas e simular investimentos...</p>
+    <p><a href="/login" class="link">Faça login</a> ou <a href="/register" class="link">Registre-se</a></p><br>
+{% endif %}
 
 <div class="dashboard">
     <div class="card" id="principal">

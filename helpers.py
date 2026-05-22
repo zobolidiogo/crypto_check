@@ -1,36 +1,80 @@
 import requests
+import time
+import os
 
+from dotenv import load_dotenv
 from datetime import datetime
 from flask import render_template, session, redirect
 from decimal import Decimal, InvalidOperation, ROUND_DOWN
 from functools import wraps
 
-def crypto_name_format(nm_crypto):
-    return nm_crypto.split("-")[1].capitalize()
+load_dotenv()
 
-def tirar_hifem(nm_moeda):
-    return nm_moeda.split("-")[1]
+keys = {
+    "x-cg-demo-api-key": os.getenv("COINGECKO_API_KEY")
+}
+
+BASE_COINGECKO_URL = "https://api.coingecko.com/api/v3"
+
+CACHE_TEMPO = 60
+
+cache_precos = {}
+cache_historico = {}
+
+session_requests = requests.Session()
+session_requests.headers.update(keys)
+
+
 
 def apology(mensagem):
     return render_template("apology.html", mensagem=mensagem)
 
 def index_crypto_func(linha, moeda="usd"):
-    url = f"https://api.coingecko.com/api/v3/simple/price?ids={linha}&vs_currencies={moeda}"
+
+    linha = ",".join(sorted(linha.split(",")))
+
+    chave_cache = f"{linha}:{moeda}"
+
+    if chave_cache in cache_precos:
+        tempo_cache = cache_precos[chave_cache]["tempo"]
+
+        if time.time() - tempo_cache < CACHE_TEMPO:
+            print("Usando cache para preços")
+            return cache_precos[chave_cache]["dados"]
+
+    url = f"{BASE_COINGECKO_URL}/simple/price?ids={linha}&vs_currencies={moeda}"
     try:
-        resposta = requests.get(url)
+        resposta = session_requests.get(url)
         resposta.raise_for_status()
         dados = resposta.json()
+
+        cache_precos[chave_cache] = {
+            "dados": dados,
+            "tempo": time.time()
+        }
+        print("Cache atualizado para preços")
         return dados
+    
     except requests.RequestException as re:
         print(f"Erro de pedido: {re}")
     return None
 
 def crypto_history_format_day(nm_crypto, moeda="usd", dias=30):
     
-    url = f"https://api.coingecko.com/api/v3/coins/{nm_crypto}/market_chart?vs_currency={moeda}&days={dias}"
+    chave_cache = f"{nm_crypto}:{moeda}:{dias}"
+
+    if chave_cache in cache_historico:
+
+        tempo_cache = cache_historico[chave_cache]["tempo"]
+
+        if time.time() - tempo_cache < CACHE_TEMPO:
+            print("usando cache de histórico")
+            return cache_historico[chave_cache]["dados"]
+    
+    url = f"{BASE_COINGECKO_URL}/coins/{nm_crypto}/market_chart?vs_currency={moeda}&days={dias}"
     
     try:
-        resposta = requests.get(url)
+        resposta = session_requests.get(url)
         resposta.raise_for_status()
         dados = resposta.json()
 
@@ -52,6 +96,12 @@ def crypto_history_format_day(nm_crypto, moeda="usd", dias=30):
                 "preco": float(preco)
             })
         
+        cache_historico[chave_cache] = {
+            "dados": formatado,
+            "tempo": time.time()
+        }
+        print("cache atualizado para histórico")
+        
         return formatado
     
     except requests.RequestException as re:
@@ -68,7 +118,7 @@ def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if session.get("id_usuario") is None:
-            return redirect("/login")
+            return redirect("/market")
         return f(*args, **kwargs)
     
     return decorated_function

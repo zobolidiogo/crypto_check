@@ -3,7 +3,16 @@
 {% block title %}Mercado{% endblock %}
 
 {% block content %}
-    <h2>Criptomoedas disponíveis para compra</h2>
+    {% if session.get("id_usuario") %}
+        <h2>Bem-vindo, {{ session["nm_usuario"] }}!</h2>
+        <p>Aqui estão as criptomoedas disponíveis para compra. Clique em "Mais detalhes" para ver informações adicionais e gráficos de preços.</p>
+        <br>
+    {% else %}
+        <h2>Bem-vindo ao Mercado de Criptomoedas!</h2>
+        <p>Para acessar mais funcionalidades...</p>
+        <p><a href="/login" class="link">Faça login</a> ou <a href="/register" class="link">Registre-se</a></p>
+        <br>
+    {% endif %}
 
     <table class="table">
         <thead>
@@ -16,7 +25,7 @@
         <tbody>
             {% for crypto in estoques %}
                 <tr>
-                    <td>{{ crypto["nome"] | crypto_name_format }}</td>
+                    <td>{{ crypto["nome"] }}</td>
                     <td>{{ crypto["preco"] | usd }}</td>
                     <td>
                         <a href="/market/{{ crypto['nome'] }}" class="link">

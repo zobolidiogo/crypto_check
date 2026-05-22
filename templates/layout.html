@@ -20,9 +20,11 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="crypto.check">
     <meta name="twitter:description" content="Simulador de investimentos em criptomoedas desenvolvido com Flask e PostgreSQL.">
-
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="/static/styles.css">
     <link rel="icon" href="/static/favicon.ico">
+    
 </head>
 <body>
     <header class="header">
@@ -37,6 +39,7 @@
                     <li class="nav-item" id="right" class="nav-link">Login: {{ session.get("nm_usuario") }}</li>
                     <li class="nav-item" id="right"><a href="/logout" class="nav-link">Fazer logout</a></li>
                 {% else %}
+                    <li class="nav-item" id="left"><a href="/market" class="nav-link">Mercado</a></li>
                     <li class="nav-item" id="left"><a href="/about" class="nav-link">Sobre</a></li>
                     <li class="nav-item" id="right"><a href="/register" class="nav-link">Registrar</a></li>
                     <li class="nav-item" id="right"><a href="/login" class="nav-link">Fazer login</a></li>
@@ -51,17 +54,25 @@
     
     <footer class="footer">
         <div class="footer-content">
-            <p>&copy; 2026 crypto.check</p>
+            <p>&copy; 2026 crypto.check | Todos os direitos reservados</p>
             
             <div class="contact-section">
-                <h3>Contato do autor</h3>
-                <ul class="contact-links">
-                    <li><a href="mailto:zobolidiogo@gmail.com" title="Email">zobolidiogo@gmail.com</a></li>
-                    <li><a href="https://wa.me/5547988297586" target="_blank" title="WhatsApp">+55 (47) 9 8829-7586</a></li>
-                    <li><a href="https://zobolidiogo.github.io/portfolio" target="_blank" title="portfolio">Portfolio</a></li>
-                    <li><a href="https://linkedin.com/in/zobolidiogo" target="_blank" title="LinkedIn">Linkedin</a></li>
-                    <li><a href="https://github.com/zobolidiogo" target="_blank" title="GitHub">GitHub</a></li>
-                </ul>
+            <h3>Contato do autor</h3>
+                <div class="contact-grid">
+                    <div class="contact-info">
+                        <a href="https://zobolidiogo.github.io/portfolio" target="_blank"><i class="bi bi-person-fill"></i> Meu Portfolio</a>
+                        <a href="mailto:zobolidiogo@gmail.com"><i class="bi bi-envelope-fill"></i> zobolidiogo@gmail.com</a>
+                        <a href="https://github.com/zobolidiogo" target="_blank"><i class="bi bi-github"></i> github.com/zobolidiogo</a>
+                        <a href="https://www.linkedin.com/in/zobolidiogo" target="_blank"><i class="bi bi-linkedin"></i> linkedin.com/in/zobolidiogo</a>
+                        <a href="https://wa.me/5547988297586" target="_blank"><i class="bi bi-whatsapp"></i> +55 (47) 9 8829-7586</a>
+                    </div>
+                    <form class="contact-form" action="https://formspree.io/f/xpqndely" target="_blank" method="POST">
+                        <label>Nome <input type="text" name="name" required placeholder="Como devo te chamar?" /></label>
+                        <label>Email <input type="email" name="email" required placeholder="seu@email.com" /></label>
+                        <label>Mensagem <textarea rows="5" name="message" required placeholder="Conte-me sobre você..."></textarea></label>
+                        <button type="submit"><i class="bi bi-send"></i> Enviar mensagem</button>
+                    </form>
+                </div>
             </div>
         </div>
     </footer>
