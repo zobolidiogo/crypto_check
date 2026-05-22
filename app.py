@@ -1,6 +1,6 @@
 import os
 
-from helpers import tirar_hifem, index_crypto_func, apology, crypto_history_format_day, login_required, usd, brl, val_nome, val_senha, crypto_name_format
+from helpers import index_crypto_func, apology, crypto_history_format_day, login_required, usd, brl, val_nome, val_senha
 from cs50 import SQL
 from flask import Flask, redirect, render_template, request, session
 from flask_session import Session
@@ -14,7 +14,6 @@ app.secret_key = os.getenv("SECRET_KEY")
 
 app.jinja_env.filters["usd"] = usd
 app.jinja_env.filters["brl"] = brl
-app.jinja_env.filters["crypto_name_format"] = crypto_name_format
 
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
@@ -23,7 +22,7 @@ Session(app)
 db = SQL(os.getenv("DATABASE_URL"))
 # db.execute("PRAGMA foreign_keys = ON")
 
-cryptos = ["btc-bitcoin", "usdt-tether", "eth-ethereum", "sol-solana", "ada-cardano", "xrp-xrp", "doge-dogecoin"]
+cryptos = ["bitcoin", "tether", "ethereum", "solana", "cardano", "xrp", "dogecoin"]
 
 @app.after_request
 def after_request(response):
@@ -126,7 +125,7 @@ def index():
     moeda = "usd"
 
     for row in rows:
-        crypto = tirar_hifem(row["nm_crypto"])
+        crypto = row["nm_crypto"]
         linha.append(crypto)
 
     precos = index_crypto_func(linha=",".join(linha), moeda=moeda)
@@ -138,7 +137,7 @@ def index():
 
     for row in rows:
 
-        crypto = tirar_hifem(row["nm_crypto"])
+        crypto = row["nm_crypto"]
 
         if crypto not in precos:
             continue
@@ -184,7 +183,7 @@ def market():
 
     for crypto in cryptos:
 
-        cryptos_arrumado.append(tirar_hifem(crypto))
+        cryptos_arrumado.append(crypto)
 
     precos = index_crypto_func(linha=",".join(cryptos_arrumado), moeda=moeda)
 
@@ -193,7 +192,7 @@ def market():
 
     for crypto in cryptos:
 
-        nome_api = tirar_hifem(crypto)
+        nome_api = crypto
 
         if nome_api not in precos:
             continue
@@ -214,8 +213,11 @@ def pagina_crypto(crypto):
     if crypto not in cryptos:
         return apology("cripto inválida")
     
-    historico = crypto_history_format_day(tirar_hifem(crypto))
+    historico = crypto_history_format_day(crypto)
     preco = historico[-1]["preco"]
+
+    if not historico:
+        return apology("não foi possível obter histórico da criptomoeda")
     
     precos = []
 
@@ -241,7 +243,7 @@ def buy(crypto):
     if crypto not in cryptos:
         return apology("cripto inválida")
     
-    preco = crypto_history_format_day(tirar_hifem(crypto))[-1]["preco"]
+    preco = crypto_history_format_day(crypto)[-1]["preco"]
     if preco is None:
         return apology("não foi possível obter o preço da criptomoeda")
 
@@ -276,7 +278,7 @@ def sell(crypto):
     if crypto not in cryptos:
         return apology("cripto inválida")
     
-    preco = crypto_history_format_day(tirar_hifem(crypto))[-1]["preco"]
+    preco = crypto_history_format_day(crypto)[-1]["preco"]
 
     if preco is None:
         return apology("não foi possível obter o preço da criptomoeda")
