@@ -14,22 +14,18 @@ keys = {
     "x-cg-demo-api-key": os.getenv("COINGECKO_API_KEY")
 }
 
-BASE_COINGECKO_CALL = "https://api.coingecko.com/api/v3"
+BASE_COINGECKO_URL = "https://api.coingecko.com/api/v3"
 
 session_requests = requests.Session()
 session_requests.headers.update(keys)
-
-def crypto_name_format(nm_crypto):
-    return nm_crypto.split("-")[1].capitalize()
-
-def tirar_hifem(nm_moeda):
-    return nm_moeda.split("-")[1]
 
 def apology(mensagem):
     return render_template("apology.html", mensagem=mensagem)
 
 def index_crypto_func(linha, moeda="usd"):
-    url = f"{BASE_COINGECKO_CALL}/simple/price?ids={linha}&vs_currencies={moeda}"
+
+
+    url = f"{BASE_COINGECKO_URL}/simple/price?ids={linha}&vs_currencies={moeda}"
     try:
         resposta = session_requests.get(url)
         resposta.raise_for_status()
@@ -41,10 +37,10 @@ def index_crypto_func(linha, moeda="usd"):
 
 def crypto_history_format_day(nm_crypto, moeda="usd", dias=30):
     
-    url = f"https://api.coingecko.com/api/v3/coins/{nm_crypto}/market_chart?vs_currency={moeda}&days={dias}"
+    url = f"{BASE_COINGECKO_URL}/coins/{nm_crypto}/market_chart?vs_currency={moeda}&days={dias}"
     
     try:
-        resposta = session.requests.get(url)
+        resposta = session_requests.get(url)
         resposta.raise_for_status()
         dados = resposta.json()
 
