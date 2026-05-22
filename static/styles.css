@@ -541,3 +541,146 @@ button:active { transform: translateY(0); }
 
     .apology-title { font-size: 22px; }
 }
+/* ---------- FOOTER CONTACT ---------- */
+
+.contact-section {
+    margin-top: 24px;
+}
+
+.contact-section h3 {
+    color: white;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin-bottom: 20px;
+}
+
+.contact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 20px;
+
+    align-items: stretch; /* alinhamento vertical */
+}
+
+.contact-info {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    height: 100%; /* ocupa mesma altura do form */
+}
+
+.contact-info a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    flex: 1; /* distribui altura igualmente */
+
+    text-decoration: none;
+    color: #cbd5e1;
+
+    background: rgba(255,255,255,.04);
+
+    border: 1px solid rgba(255,255,255,.08);
+
+    padding: 14px 16px;
+
+    border-radius: var(--radius);
+
+    transition: all .2s ease;
+}
+
+.contact-info a:hover {
+    color: white;
+    background: rgba(255,255,255,.08);
+    transform: translateY(-2px);
+}
+
+.contact-info i {
+    font-size: 17px;
+}
+
+.contact-form {
+    background: rgba(255,255,255,.04);
+
+    border: 1px solid rgba(255,255,255,.08);
+
+    border-radius: var(--radius-lg);
+
+    padding: 22px;
+
+    margin-top: 0; /* remove desalinhamento */
+}
+
+.contact-form label {
+    display: flex;
+    flex-direction: column;
+
+    gap: 8px;
+
+    margin-bottom: 16px;
+
+    color: #e2e8f0;
+
+    font-size: 14px;
+    font-weight: 500;
+
+    text-align: left;
+    align-items: flex-start;
+}
+
+.contact-form input,
+.contact-form textarea {
+    width: 100%;
+
+    background: rgba(255,255,255,.05);
+
+    border: 1px solid rgba(255,255,255,.08);
+
+    color: white;
+}
+
+.contact-form textarea {
+    padding: 12px 14px;
+
+    border-radius: var(--radius-sm);
+
+    font-family: inherit;
+
+    resize: vertical;
+    min-height: 120px;
+}
+
+.contact-form textarea::placeholder,
+.contact-form input::placeholder {
+    color: #94a3b8;
+}
+
+.contact-form textarea:focus,
+.contact-form input:focus {
+    outline: none;
+
+    border-color: var(--primary);
+
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, .15);
+}
+
+.contact-form button {
+    width: 100%;
+    margin-top: 4px;
+}
+
+@media (max-width: 768px) {
+
+    .contact-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .contact-info a {
+        flex: unset;
+    }
+
+}
