@@ -1,9 +1,9 @@
 {% extends "layout.html" %}
 
-{% block title %}Comprar {{ crypto | crypto_name_format }}{% endblock %}
+{% block title %}Comprar {{ crypto }}{% endblock %}
 
 {% block content %}
-<h1>Comprar {{ crypto | crypto_name_format }}</h1>
+<h1>Comprar {{ crypto }}</h1>
 <p>Preço atual: {{ preco | usd }}</p>
 <br>
 <p>Dinheiro disponível: {{ dinheiro | usd }}</p>

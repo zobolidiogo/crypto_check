@@ -17,7 +17,7 @@
             <tbody>
                 {% for row in transactions %}
                     <tr>
-                        <td>{{ row["nm_crypto"] | crypto_name_format }}</td>
+                        <td>{{ row["nm_crypto"] }}</td>
 
                         <td>
                             {% if row["tp_transacao"] == "BUY" %}

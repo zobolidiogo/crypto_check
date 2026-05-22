@@ -3,7 +3,7 @@
 {% block title %}{{ crypto }}{% endblock %}
 
 {% block content %}
-<h1>{{ crypto | crypto_name_format }}</h1>
+<h1>{{ crypto }}</h1>
 <p>Preço atual: {{ preco | usd }}</p>
 <a href="/buy/{{ crypto }}" class="link">Comprar Criptomoeda</a>
 

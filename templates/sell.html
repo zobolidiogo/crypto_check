@@ -1,12 +1,12 @@
 {% extends "layout.html" %}
 
-{% block title %}Vender {{ crypto | crypto_name_format }}{% endblock %}
+{% block title %}Vender {{ crypto }}{% endblock %}
 
 {% block content %}
-<h1>Vender {{ crypto | crypto_name_format }}</h1>
+<h1>Vender {{ crypto }}</h1>
 <p>Preço atual: {{ preco | usd }}</p>
 <br>
-<p> Você possui {{ "{:,.5f}".format(quantidade_possui).rstrip('0').rstrip('.') }} {{ crypto | crypto_name_format }}.</p>
+<p> Você possui {{ "{:,.5f}".format(quantidade_possui).rstrip('0').rstrip('.') }} {{ crypto }}.</p>
 
 <form action="/sell/{{ crypto }}" method="post">
     <div class="formulario">

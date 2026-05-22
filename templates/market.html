@@ -16,7 +16,7 @@
         <tbody>
             {% for crypto in estoques %}
                 <tr>
-                    <td>{{ crypto["nome"] | crypto_name_format }}</td>
+                    <td>{{ crypto["nome"] }}</td>
                     <td>{{ crypto["preco"] | usd }}</td>
                     <td>
                         <a href="/market/{{ crypto['nome'] }}" class="link">
