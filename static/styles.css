@@ -252,6 +252,22 @@ form { margin-top: 24px; }
 
 form > div { margin-bottom: 12px; }
 
+.form-error {
+    background: rgba(239, 68, 68, .12);
+    border: 1px solid rgba(239, 68, 68, .25);
+
+    color: #ff0000;
+
+    padding: 14px 16px;
+
+    border-radius: var(--radius);
+
+    margin-bottom: 18px;
+
+    font-size: 14px;
+    font-weight: 500;
+}
+
 input {
     padding: 12px 14px;
     width: 320px;
@@ -540,7 +556,6 @@ button:active { transform: translateY(0); }
 
     .apology-title { font-size: 22px; }
 }
-/* ---------- FOOTER CONTACT ---------- */
 
 .contact-section {
     margin-top: 24px;
@@ -560,7 +575,7 @@ button:active { transform: translateY(0); }
     gap: 24px;
     margin-top: 20px;
 
-    align-items: stretch; /* alinhamento vertical */
+    align-items: stretch;
 }
 
 .contact-info {
@@ -568,7 +583,7 @@ button:active { transform: translateY(0); }
     flex-direction: column;
     gap: 12px;
 
-    height: 100%; /* ocupa mesma altura do form */
+    height: 100%;
 }
 
 .contact-info a {
