@@ -210,11 +210,13 @@ def market():
 
 @app.route("/market/<crypto>")
 def pagina_crypto(crypto):
+
+    days = 31
     
     if crypto not in cryptos:
         return apology("cripto inválida")
     
-    historico = crypto_history_format_day(crypto)
+    historico = crypto_history_format_day(crypto, dias=days)
     preco = historico[-1]["preco"]
 
     if not historico:
@@ -232,7 +234,7 @@ def pagina_crypto(crypto):
         max_preco = None
         min_preco = None
 
-    return render_template("crypto.html", crypto=crypto, preco=preco, historico=historico, max_preco=max_preco, min_preco=min_preco)
+    return render_template("crypto.html", days=days, crypto=crypto, preco=preco, historico=historico, max_preco=max_preco, min_preco=min_preco)
 
 @app.route("/buy/<crypto>", methods=["GET", "POST"])
 @login_required

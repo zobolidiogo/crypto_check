@@ -139,6 +139,11 @@ def brl(vl):
     formatacao = formatacao.replace(",", "x").replace(".", ",").replace("x", ".")
     return f"R$ {formatacao}"
 
+def primeira_letra_maiuscula(texto):
+    if not texto:
+        return ""
+    return texto.capitalize()
+
 def val_nome(nome):
     if len(nome) < 3 or len(nome) > 20:
         return "o nome de usuário precisa ter entre 3-20 caracteres"
