@@ -24,7 +24,12 @@ cache_historico = {}
 session_requests = requests.Session()
 session_requests.headers.update(keys)
 
-
+def db_query(db, query, *params):
+    try:
+        return db.execute(query, *params)
+    except Exception as e:
+        print(e)
+        return None
 
 def apology(mensagem):
     return render_template("apology.html", mensagem=mensagem)
