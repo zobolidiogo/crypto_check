@@ -159,8 +159,8 @@ def val_nome(nome):
 
 def val_senha(senha):
 
-    if len(senha) < 6 or len(senha) > 10:
-        return "a senha precisa ter entre 6-10 caracteres"
+    if len(senha) < 6 or len(senha) > 20:
+        return "a senha precisa ter entre 6-20 caracteres"
 
     tem_minuscula = False
     tem_maiuscula = False
