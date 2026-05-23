@@ -32,7 +32,7 @@ new Chart(grafico, {
                     minRotation: 0,
 
                     callback: function (value, index) {
-                        return index % 5 === 0 ? this.getLabelForValue(value) : '';
+                        return index % 3 === 0 ? this.getLabelForValue(value) : '';
                     }
                 }                
             },
