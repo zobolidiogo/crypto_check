@@ -1,6 +1,6 @@
 import os
 
-from helpers import index_crypto_func, apology, crypto_history_format_day, login_required, usd, brl, val_nome, val_senha
+from helpers import db_query, index_crypto_func, apology, crypto_history_format_day, login_required, usd, brl, val_nome, val_senha
 from cs50 import SQL
 from flask import Flask, redirect, render_template, request, session
 from flask_session import Session
@@ -34,7 +34,8 @@ def after_request(response):
 @app.route("/register", methods=["GET", "POST"])
 def register():
 
-    session.clear()
+    if session.get("id_usuario"):
+        return redirect("/")
 
     if request.method == "GET":
         return render_template("register.html")
@@ -44,30 +45,40 @@ def register():
     confirmacao = request.form.get("confirmacao")
 
     if not usuario:
-        return apology("digite um usuário")
+        return render_template("register.html", mensagem="digite um nome de usuário", usuario=usuario)
     
     if not senha:
-        return apology("digite uma senha")
+        return render_template("register.html", mensagem="digite uma senha", usuario=usuario)
     
     erro_senha = val_senha(senha)
     if erro_senha:
-        return apology(erro_senha)
+        return render_template("register.html", mensagem=erro_senha, usuario=usuario)
 
     erro_usuario = val_nome(usuario)
     if erro_usuario:
-        return apology(erro_usuario)
+        return render_template("register.html", mensagem=erro_usuario, usuario=usuario)
 
     if confirmacao != senha:
-        return apology("as senhas não coincidem")
+        return render_template("register.html", mensagem="as senhas não conferem", usuario=usuario)
 
-    rows = db.execute("select nm_usuario from T_USUARIO where nm_usuario = ?", usuario)
+    rows = db_query(db, "select nm_usuario from T_USUARIO where nm_usuario = ?", usuario)
+    if rows is None:
+        return render_template("register.html", mensagem="erro ao acessar o banco de dados", usuario=usuario)
+    
     if len(rows):
-        return apology("o usuário já existe")
+        return render_template("register.html", mensagem="o usuário já existe", usuario=usuario)
     
     hash = generate_password_hash(senha)
-    db.execute("insert into T_USUARIO (nm_usuario, cd_hash) values (?, ?)", usuario, hash)
 
-    rows = db.execute("select id_usuario, nm_usuario from T_USUARIO where nm_usuario = ?", usuario)
+    try:
+        db.execute("insert into T_USUARIO (nm_usuario, cd_hash) values (?, ?)", usuario, hash)
+    except Exception as e:
+        return render_template("register.html", mensagem="erro ao cadastrar usuário", usuario=usuario)
+    
+    rows = db_query(db, "select id_usuario, nm_usuario from T_USUARIO where nm_usuario = ?", usuario)
+    if rows is None:
+        return render_template("register.html", mensagem="erro ao acessar o banco de dados", usuario=usuario)
+
     session["id_usuario"] = rows[0]["id_usuario"]
     session["nm_usuario"] = rows[0]["nm_usuario"]
 
@@ -78,8 +89,6 @@ def login():
 
     if session.get("id_usuario"):
         return redirect("/")
-    
-    session.clear()
 
     if request.method == "GET":
         return render_template("login.html")
@@ -88,15 +97,17 @@ def login():
     senha = request.form.get("senha")
 
     if not usuario:
-        return apology("precisa de um nome de usuário")
+        return render_template("login.html", mensagem="favor prover um usuário", usuario=usuario)
     
     if not senha:
-        return apology("favor prover uma senha")
+        return render_template("login.html", mensagem="favor prover uma senha", usuario=usuario)
     
-    rows = db.execute("select id_usuario, nm_usuario, cd_hash from T_USUARIO where nm_usuario = ?", usuario)
+    rows = db_query(db, "select id_usuario, nm_usuario, cd_hash from T_USUARIO where nm_usuario = ?", usuario)
+    if rows is None:
+        return render_template("login.html", mensagem="erro ao acessar o banco de dados", usuario=usuario)
 
     if len(rows) != 1 or not check_password_hash(rows[0]["cd_hash"], senha):
-        return apology("usuário e/ou senha inválido(s)")
+        return render_template("login.html", mensagem="usuário e/ou senha inválido(s)", usuario=usuario)
     
     session["id_usuario"] = rows[0]["id_usuario"]
     session["nm_usuario"] = rows[0]["nm_usuario"]
@@ -114,13 +125,16 @@ def logout():
 @login_required
 def index():
 
-    rows = db.execute("""
+    rows = db_query(db, """
         select nm_crypto, sum(qt_crypto) as qt_compras
         from T_TRANSACAO
         where id_usuario = ?
         group by nm_crypto
         having sum(qt_crypto) > 0
     """, session["id_usuario"])
+
+    if rows is None:
+        return apology("erro ao acessar o banco de dados")
 
     portfolio = []
     total = 0
@@ -163,10 +177,9 @@ def index():
     if not portfolio:
         mensagem = "Você não possui nenhuma compra"
 
-    row_dinheiro = db.execute(
-        "select qt_dinheiro from T_USUARIO where id_usuario = ?",
-        session["id_usuario"]
-    )
+    row_dinheiro = db_query(db, "select qt_dinheiro from T_USUARIO where id_usuario = ?", session["id_usuario"])
+    if row_dinheiro is None:
+        return apology("erro ao acessar o banco de dados")
 
     dinheiro = row_dinheiro[0]["qt_dinheiro"]
 
@@ -217,11 +230,12 @@ def pagina_crypto(crypto):
         return apology("cripto inválida")
     
     historico = crypto_history_format_day(crypto, dias=days)
-    preco = historico[-1]["preco"]
-
+    
     if not historico:
         return apology("não foi possível obter histórico da criptomoeda")
     
+    preco = historico[-1]["preco"]
+
     precos = []
 
     for preco_historico in historico:
@@ -240,13 +254,22 @@ def pagina_crypto(crypto):
 @login_required
 def buy(crypto):
 
-    row_usuario = db.execute("select qt_dinheiro from T_USUARIO where id_usuario = ?", session["id_usuario"])
+    row_usuario = db_query(db, "select qt_dinheiro from T_USUARIO where id_usuario = ?", session["id_usuario"])
+    if row_usuario is None:
+        return apology("erro ao acessar o banco de dados")
+
     dinheiro = row_usuario[0]["qt_dinheiro"]
 
     if crypto not in cryptos:
         return apology("cripto inválida")
     
-    preco = crypto_history_format_day(crypto)[-1]["preco"]
+    historico = crypto_history_format_day(crypto)
+    
+    if not historico:
+        return apology("não foi possível obter o histórico da criptomoeda")
+
+    preco = historico[-1]["preco"]
+
     if preco is None:
         return apology("não foi possível obter o preço da criptomoeda")
 
@@ -269,8 +292,15 @@ def buy(crypto):
     if custo_total > dinheiro:
         return apology("dinheiro insuficiente para esta compra")
     
-    db.execute("update T_USUARIO set qt_dinheiro = qt_dinheiro - ? where id_usuario = ?", custo_total, session["id_usuario"])
-    db.execute("insert into T_TRANSACAO (id_usuario, nm_crypto, qt_crypto, vl_unitario_usd, tp_transacao) values (?, ?, ?, ?, ?)", session["id_usuario"], crypto, quantidade, preco, "BUY")
+    try:
+        db.execute("BEGIN TRANSACTION")
+        db.execute("update T_USUARIO set qt_dinheiro = qt_dinheiro - ? where id_usuario = ?", custo_total, session["id_usuario"])
+        db.execute("insert into T_TRANSACAO (id_usuario, nm_crypto, qt_crypto, vl_unitario_usd, tp_transacao) values (?, ?, ?, ?, ?)", session["id_usuario"], crypto, quantidade, preco, "BUY")
+        db.execute("COMMIT")
+    except Exception as e:
+        print(e)
+        db.execute("ROLLBACK")
+        return apology("erro ao acessar o banco de dados")
 
     return redirect("/")
 
@@ -281,12 +311,20 @@ def sell(crypto):
     if crypto not in cryptos:
         return apology("cripto inválida")
     
-    preco = crypto_history_format_day(crypto)[-1]["preco"]
+    historico = crypto_history_format_day(crypto)
+    
+    if not historico:
+        return apology("não foi possível obter o histórico da criptomoeda")
+
+    preco = historico[-1]["preco"]
 
     if preco is None:
         return apology("não foi possível obter o preço da criptomoeda")
     
-    row = db.execute("select sum(qt_crypto) as qt_total from T_TRANSACAO where id_usuario = ? and nm_crypto = ?", session["id_usuario"], crypto)
+    row = db_query(db, "select sum(qt_crypto) as qt_total from T_TRANSACAO where id_usuario = ? and nm_crypto = ?", session["id_usuario"], crypto)
+    if row is None:
+        return apology("erro ao acessar o banco de dados")
+    
     quantidade_possui = row[0]["qt_total"]
     if quantidade_possui is None:
         quantidade_possui = 0
@@ -312,15 +350,24 @@ def sell(crypto):
         return apology("você não possui esta quantidade da criptomoeda para vender")
     
     valor_total_venda = preco * quantidade_venda
-    db.execute("insert into T_TRANSACAO (id_usuario, nm_crypto, qt_crypto, vl_unitario_usd, tp_transacao) values (?, ?, ?, ?, ?)", session["id_usuario"], crypto, -quantidade_venda, preco, "SELL")
-    db.execute("update T_USUARIO set qt_dinheiro = qt_dinheiro + ? where id_usuario = ?", valor_total_venda, session["id_usuario"])
-
+    try:
+        db.execute("BEGIN TRANSACTION")
+        db.execute("insert into T_TRANSACAO (id_usuario, nm_crypto, qt_crypto, vl_unitario_usd, tp_transacao) values (?, ?, ?, ?, ?)", session["id_usuario"], crypto, -quantidade_venda, preco, "SELL")
+        db.execute("update T_USUARIO set qt_dinheiro = qt_dinheiro + ? where id_usuario = ?", valor_total_venda, session["id_usuario"])
+        db.execute("COMMIT")
+    except Exception as e:
+        print(e)
+        db.execute("ROLLBACK")
+        return apology("erro ao acessar o banco de dados")
     return redirect("/")
 
 @app.route("/history")
 @login_required
 def history():
-    transactions = db.execute("select nm_crypto, qt_crypto, vl_unitario_usd, tp_transacao, dt_transacao from T_TRANSACAO where id_usuario = ? order by dt_transacao desc", session["id_usuario"])
+    transactions = db_query(db, "select nm_crypto, qt_crypto, vl_unitario_usd, tp_transacao, dt_transacao from T_TRANSACAO where id_usuario = ? order by dt_transacao desc", session["id_usuario"])
+    if transactions is None:
+        return apology("erro ao acessar o banco de dados")
+    
     return render_template("history.html", transactions=transactions)
 
 @app.route("/about")
