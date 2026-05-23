@@ -30,7 +30,7 @@ Criar uma aplicação web completa que permitisse aos usuários praticar investi
 
 ## A Solução
 
-Aplicação full-stack que simula uma exchange de criptomoedas, utilizando Flask no backend, PostgreSQL em nuvem via Supabase e integração com APIs externas para dados de mercado em tempo real.
+Aplicação full-stack que simula uma exchange de criptomoedas, utilizando Flask no backend, PostgreSQL em nuvem via Supabase e integração com a CoinGecko API para dados de mercado em tempo real — com sistema de cache em memória para otimizar requisições e respeitar rate limits.
 
 Usuários iniciam com $10.000 virtuais e podem negociar 7 criptomoedas principais:
 
@@ -42,109 +42,138 @@ Usuários iniciam com $10.000 virtuais e podem negociar 7 criptomoedas principai
 - XRP
 - Dogecoin
 
-Os preços são atualizados em tempo real via CoinGecko API, utilizando consultas otimizadas em lote para reduzir o número de requisições externas e melhorar a performance da aplicação.
-
 ---
 
 ## Funcionalidades Principais
 
 ### Sistema de Autenticação
 
-- Registro com validação
-- Login seguro com hashing de senhas
-- Gerenciamento de sessões server-side
-- Controle de autenticação
+- Registro com validação de nome de usuário e senha
+- Login seguro com hashing de senhas via Werkzeug
+- Gerenciamento de sessões server-side com Flask-Session
+- Proteção de rotas com decorator `@login_required`
+- Redirecionamento automático para usuários já autenticados
+
+### Validações de Formulário
+
+**Nome de usuário:**
+- Entre 3 e 20 caracteres
+- Não pode começar com número
+- Apenas letras, números e `_`
+
+**Senha:**
+- Entre 6 e 20 caracteres
+- Obrigatório: letra minúscula, maiúscula e número
+- Sem caracteres especiais
 
 ### Gestão de Portfólio
 
-- Dashboard interativo mostrando ativos do usuário
-- Cálculo automático do valor total da carteira
-- Atualização de preços em tempo real
+- Dashboard interativo com ativos do usuário
+- Cálculo automático do valor total da carteira em tempo real
 - Exibição de quantidade, preço unitário e valor total por ativo
+- Saldo em dinheiro virtual separado dos ativos
 
 ### Sistema de Negociação
 
 - Compra de criptomoedas com validação de saldo
 - Venda de ativos com verificação de quantidade disponível
-- Registro completo de transações
-- Histórico detalhado de operações
+- Transações atômicas com `BEGIN TRANSACTION` / `COMMIT` / `ROLLBACK`
+- Registro completo de todas as operações
+
+### Histórico de Transações
+
+- Listagem completa ordenada por data (mais recente primeiro)
+- Exibe tipo (BUY/SELL), quantidade, preço unitário e data de cada operação
 
 ### Análise de Mercado
 
 - Lista de criptomoedas disponíveis com preços atuais
 - Página individual para cada criptomoeda
-- Gráfico histórico de preços dos últimos 30 dias
-- Estatísticas de preço máximo e mínimo
-- Visualização interativa utilizando Chart.js
+- Gráfico histórico de preços dos últimos 30 dias via Chart.js
+- Estatísticas de preço máximo e mínimo no período
+- Acesso ao mercado disponível mesmo sem login
 
-### Navegação e Interface
+### Interface
 
-- Página "Sobre" com informações do projeto
 - Layout responsivo para desktop e mobile
-- Interface adaptada para diferentes resoluções
-- Navegação simplificada e intuitiva
-
-### Integrações API
-
-- CoinGecko API centralizada para cotações atuais e dados históricos
-- Consultas otimizadas em lote (*batch requests*) para prevenção de *rate limits*
-- Tratamento de falhas, erros externos e *timeouts*
+- Filtros Jinja2 customizados: `usd` (dólar) e `brl` (real brasileiro)
+- Formulário de contato integrado ao layout
+- Página `/about` com informações do projeto
+- Cache HTTP via `@app.after_request` para evitar páginas desatualizadas após logout
 
 ---
 
 ## Arquitetura Técnica
 
-### Backend (Flask + Python)
+### Backend (`app.py`)
 
-#### `app.py`
+- 9 rotas Flask cobrindo autenticação, portfólio, mercado, negociação, histórico e about
+- Integração com PostgreSQL via CS50 SQL
+- Controle de sessões e proteção de rotas
+- Transações atômicas para operações financeiras
 
-Responsável por:
+### Helpers (`helpers.py`)
 
-- Rotas da aplicação
-- Sistema de autenticação
-- Sistema de portfólio com agregação de dados pré-request
-- Compra e venda de criptomoedas
-- Histórico de transações
-- Integração com PostgreSQL
-- Controle de sessões
-- Rota `/about`
+- `index_crypto_func()` — consulta em lote via `/simple/price` da CoinGecko com cache em memória
+- `crypto_history_format_day()` — histórico de preços via `market_chart` com cache em memória
+- `db_query()` — wrapper seguro para queries com tratamento de exceções
+- `val_nome()` / `val_senha()` — validações de formulário com regras explícitas
+- `usd()` / `brl()` — filtros de formatação monetária registrados no Jinja2
+- `login_required` — decorator de proteção de rotas
+- `apology()` — renderização padronizada de erros
+- `requests.Session()` persistente com API key no header para maior limite de requisições
 
-#### `helpers.py`
+---
 
-Contém:
+## Sistema de Cache
 
-- Centralização de consultas em lote via endpoint `/simple/price` da CoinGecko
-- Busca de dados históricos de criptomoedas via endpoint `market_chart`
-- Validação de usuários e senhas
-- Decorators de autenticação
-- Funções auxiliares de formatação
+A aplicação implementa cache em memória para preços e históricos, reduzindo chamadas à API externa e evitando rate limits:
+
+```python
+CACHE_TEMPO = 60  # segundos
+```
+
+**Como funciona:**
+- Preços em tempo real e históricos são armazenados em dicionários em memória (`cache_precos`, `cache_historico`)
+- Chave do cache é composta por `ids_cryptos:moeda` (preços) ou `crypto:moeda:dias` (histórico)
+- A cada requisição, verifica se o cache existe e se ainda é válido (menos de 60 segundos)
+- Se válido, retorna os dados em cache sem chamar a API
+- Se expirado ou ausente, busca da CoinGecko, atualiza o cache e retorna os dados
+
+**Benefícios:**
+- Redução drástica de chamadas externas em páginas com múltiplos usuários simultâneos
+- Respeito aos rate limits da CoinGecko
+- Melhora na performance e tempo de resposta da aplicação
+
+**API Key:**
+- Autenticação via `x-cg-demo-api-key` no header da `requests.Session()`, aumentando o limite de requisições permitidas pela CoinGecko
 
 ---
 
 ## Banco de Dados (PostgreSQL + Supabase)
 
-> Inicialmente o projeto utilizava SQLite durante o desenvolvimento local. Posteriormente, a aplicação foi migrada para PostgreSQL utilizando Supabase como infraestrutura de banco de dados em nuvem, aproximando o projeto de um ambiente mais próximo de produção.
+> Inicialmente o projeto utilizava SQLite durante o desenvolvimento local. Posteriormente, a aplicação foi migrada para PostgreSQL via Supabase, aproximando o projeto de um ambiente de produção real.
 
 ### `T_USUARIO`
 
-| Campo | Tipo |
-|---|---|
-| id_usuario | PK |
-| nm_usuario | UNIQUE |
-| cd_hash | TEXT |
-| qt_dinheiro | NUMERIC |
+| Campo | Tipo | Descrição |
+|---|---|---|
+| id_usuario | SERIAL PK | Identificador único |
+| nm_usuario | VARCHAR(20) UNIQUE | Nome de usuário |
+| cd_hash | TEXT | Hash da senha |
+| qt_dinheiro | NUMERIC | Saldo virtual (default: 10000) |
 
 ### `T_TRANSACAO`
 
-| Campo | Tipo |
-|---|---|
-| id_transacao | PK |
-| id_usuario | FK |
-| nm_crypto | TEXT |
-| qt_crypto | NUMERIC |
-| vl_unitario_usd | NUMERIC |
-| tp_transacao | TEXT |
-| dt_transacao | TIMESTAMP |
+| Campo | Tipo | Descrição |
+|---|---|---|
+| id_transacao | SERIAL PK | Identificador único |
+| id_usuario | INTEGER FK | Referência ao usuário |
+| nm_crypto | TEXT | Nome da criptomoeda |
+| qt_crypto | NUMERIC | Quantidade (negativa em SELL) |
+| vl_unitario_usd | NUMERIC | Preço unitário na transação |
+| tp_transacao | TEXT | Tipo: BUY ou SELL |
+| dt_transacao | TIMESTAMP | Data e hora da operação |
 
 ---
 
@@ -152,25 +181,33 @@ Contém:
 
 ### Templates Jinja2
 
-- Dashboard
-- Mercado
-- Página da criptomoeda
-- Histórico
-- Login
-- Registro
-- Página About
-
-### Responsividade
-
-O CSS da aplicação foi ajustado para melhorar a experiência em diferentes dispositivos e resoluções, tornando a navegação mais fluida em telas menores.
+- `layout.html` — base com navegação e formulário de contato
+- `index.html` — dashboard do portfólio
+- `market.html` — lista de criptomoedas com preços
+- `crypto.html` — página individual com gráfico e estatísticas
+- `buy.html` / `sell.html` — formulários de negociação
+- `history.html` — histórico de transações
+- `login.html` / `register.html` — autenticação
+- `about.html` — sobre o projeto
+- `apology.html` — página de erros
 
 ### Chart.js
 
-Utilizado para:
+- Gráfico de linha com histórico de preços dos últimos 30 dias
+- Labels formatados como `dd/mm/aaaa`
+- Estatísticas de máximo e mínimo no período
 
-- Histórico de preços
-- Visualização temporal
-- Estatísticas de mercado
+---
+
+### JavaScript (`static/trade.js`)
+
+Cálculo dinâmico do valor estimado nos formulários de compra e venda — atualiza em tempo real conforme o usuário digita a quantidade, multiplicando pelo preço atual sem necessidade de recarregar a página.
+
+---
+
+### Responsividade
+
+Layout adaptado para diferentes resoluções via CSS, com navegação fluida em dispositivos móveis e desktop.
 
 ---
 
@@ -185,6 +222,7 @@ crypto_check/
 ├── .env.example
 ├── static/
 │   ├── chart.js
+│   ├── trade.js
 │   ├── styles.css
 │   └── favicon.ico
 └── templates/
@@ -203,17 +241,6 @@ crypto_check/
 
 ---
 
-## `schema.sql`
-
-Arquivo responsável pela criação da estrutura inicial do banco PostgreSQL da aplicação, incluindo:
-
-- Tabelas
-- Chaves primárias
-- Relacionamentos
-- Constraints
-
----
-
 ## Como Reproduzir o Projeto
 
 ### Pré-requisitos
@@ -222,8 +249,6 @@ Arquivo responsável pela criação da estrutura inicial do banco PostgreSQL da 
 - pip
 - Conta no Supabase
 
----
-
 ### 1. Clone o repositório
 
 ```bash
@@ -231,46 +256,30 @@ git clone https://github.com/zobolidiogo/crypto_check.git
 cd crypto_check
 ```
 
----
-
 ### 2. Crie um projeto no Supabase
 
-1. Acesse o https://supabase.com
+1. Acesse https://supabase.com
 2. Crie um novo projeto
-3. Aguarde a inicialização do banco PostgreSQL
-4. Vá em:
-
-```txt
-Project Settings → Database
-```
-
-5. Copie a connection string do banco PostgreSQL
-
----
+3. Vá em `Project Settings → Database`
+4. Copie a connection string do PostgreSQL
 
 ### 3. Execute o `schema.sql`
 
-1. Abra o menu **SQL Editor** no Supabase
-2. Crie uma nova query
-3. Cole o conteúdo do arquivo `schema.sql`
-4. Execute o script para criar as tabelas da aplicação
+1. Abra o **SQL Editor** no Supabase
+2. Cole o conteúdo do `schema.sql`
+3. Execute para criar as tabelas
 
----
-
-### 4. Crie um arquivo `.env`
+### 4. Crie o arquivo `.env`
 
 Baseado no `.env.example`:
 
 ```env
 DATABASE_URL=postgresql://usuario:SUA_SENHA@host:5432/postgres
 SECRET_KEY=sua_secret_key
+COINGECKO_API_KEY=sua_api_key
 ```
 
-> Substitua `SUA_SENHA` pela senha definida no Supabase durante a criação do projeto.
-
-> O arquivo `.env` não deve ser enviado para o GitHub, pois contém credenciais sensíveis da aplicação.
-
----
+> O arquivo `.env` não deve ser enviado ao GitHub.
 
 ### 5. Instale as dependências
 
@@ -278,15 +287,11 @@ SECRET_KEY=sua_secret_key
 pip install -r requirements.txt
 ```
 
----
-
 ### 6. Execute a aplicação
 
 ```bash
 flask run
 ```
-
----
 
 ### 7. Acesse no navegador
 
@@ -300,139 +305,85 @@ http://127.0.0.1:5000
 
 A aplicação foi publicada utilizando:
 
-- Render (Deploy)
-- Supabase (PostgreSQL Cloud)
+- **Render** — deploy da aplicação Flask
+- **Supabase** — PostgreSQL em nuvem
 
-### Variáveis de ambiente utilizadas
+### Variáveis de ambiente
 
 ```env
 DATABASE_URL=your_database_url
 SECRET_KEY=your_secret_key
+COINGECKO_API_KEY=your_api_key
 ```
-
----
-
-## Tecnologias Utilizadas
-
-### Backend
-
-- Python
-- Flask
-- Flask-Session
-- Werkzeug
-- CS50 Library
-
-### Database
-
-- PostgreSQL
-- Supabase
-
-### Frontend
-
-- HTML5
-- CSS3
-- JavaScript
-- Jinja2
-- Chart.js
-
-### APIs Externas
-
-- CoinGecko API (Preços em tempo real e histórico)
-
-### Infraestrutura & Deploy
-
-- Render
-- GitHub
-
-### Ferramentas
-
-- VS Code
-- Git
 
 ---
 
 ## Segurança
 
-- Hashing de senhas
-- Sessões server-side
+- Hashing de senhas com Werkzeug
+- Sessões server-side com Flask-Session
 - Proteção de rotas com `@login_required`
-- Validação de inputs
+- Validação de inputs no servidor
+- Transações atômicas com rollback em caso de erro
 - Variáveis sensíveis protegidas via `.env`
-- Uso de environment variables no deploy
+- API key no header da sessão HTTP (não exposta no frontend)
+- Cache HTTP para evitar dados desatualizados após logout
 
 ---
 
 ## Diferenciais do Projeto
 
-### Otimização e Consumo de API
+### Cache em Memória
+Sistema de cache implementado do zero sem dependências externas, com TTL de 60 segundos, chaves compostas e invalidação automática por tempo — reduz chamadas à API e melhora performance.
 
-- **Redução de Chamadas Desnecessárias:** substituição do modelo antigo de requisições individuais por uma arquitetura centralizada, eliminando requests repetidas por página.
+### Consultas em Lote (Batching)
+Endpoint `/simple/price` da CoinGecko utilizado para buscar múltiplos preços em uma única requisição, com IDs ordenados para maximizar reaproveitamento do cache.
 
-- **Consultas em Lote (Batching):** utilização estratégica do endpoint `/simple/price` da CoinGecko, permitindo que páginas como `market` e `index` realizem apenas uma única requisição para coletar todos os dados necessários. O processamento passa a ser feito localmente, reduzindo dependências externas e mitigando problemas com *rate limits*.
-
-- **Padronização da Camada de Dados:** consolidação de preços atuais e históricos em um único provedor de API, tornando o backend mais simples, consistente e fácil de manter.
+### Transações Atômicas
+Operações de compra e venda protegidas com `BEGIN TRANSACTION` / `COMMIT` / `ROLLBACK`, garantindo consistência dos dados mesmo em caso de falha.
 
 ### Arquitetura Modular
-
-- Separação entre lógica, templates e utilitários
-- Código reutilizável
-- Estrutura organizada
-
-### Visualização de Dados
-
-- Gráficos interativos
-- Histórico temporal
-- Estatísticas de mercado
+Separação clara entre `app.py` (rotas e lógica de negócio) e `helpers.py` (utilitários, API, validações, formatação) — código reutilizável e fácil de manter.
 
 ### Estrutura Próxima de Produção
-
-- PostgreSQL em nuvem
-- Deploy cloud
-- Variáveis de ambiente
-- Configuração segura
-- Estrutura preparada para produção
-
-### Experiência do Usuário
-
-- Interface responsiva
-- Navegação simplificada
-- Página informativa sobre o projeto
-- Melhor adaptação para dispositivos móveis
+PostgreSQL em nuvem, deploy cloud, variáveis de ambiente, API key autenticada e configuração segura — projeto preparado para ambiente real.
 
 ---
 
 ## Melhorias Futuras
 
-- WebSockets para preços em tempo real
-- Sistema de watchlist
-- Mais criptomoedas
+- Verificação de email para recuperação de senha
+- WebSockets para atualização de preços sem recarregar a página
+- Sistema de watchlist de criptomoedas
+- Mais criptomoedas disponíveis
 - Dockerização
 - Testes automatizados
-- Implementação de sistema de cache de preços (em memória ou Redis)
-- Mecanismo de atualização periódica de preços via background jobs
-- Otimização contínua para redução de chamadas externas e melhor gerenciamento de *rate limits*
+- Cache persistente com Redis (substituindo cache em memória)
+- Background jobs para atualização periódica de preços
 - API própria
 - Sistema de ranking de usuários
 
 ---
 
+## Tecnologias Utilizadas
+
+**Backend:** Python, Flask, Flask-Session, Werkzeug, CS50 Library
+
+**Database:** PostgreSQL, Supabase
+
+**Frontend:** HTML5, CSS3, JavaScript, Jinja2, Chart.js
+
+**APIs Externas:** CoinGecko API
+
+**Infraestrutura:** Render, GitHub
+
+**Ferramentas:** VS Code, Git
+
+---
+
 ## Aprendizados
 
-Este projeto consolidou conhecimentos em:
-
-- Desenvolvimento full-stack
-- Integração de APIs
-- Modelagem de banco de dados
-- PostgreSQL
-- Deploy cloud
-- Segurança em aplicações web
-- Visualização de dados
-- Flask
-- Organização de código
-- Configuração de ambiente
-- Arquitetura web
-- Responsividade
-- Estruturação de aplicações web em produção
+Este projeto consolidou conhecimentos em desenvolvimento full-stack, integração de APIs, cache em memória, modelagem de banco de dados relacional, PostgreSQL, deploy cloud, segurança em aplicações web, visualização de dados, organização de código e arquitetura web.
 
 Projeto desenvolvido como Final Project do **CS50x: Introduction to Computer Science** da Harvard University.
 
