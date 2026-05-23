@@ -4,9 +4,20 @@
 
 {% block content %}
     <form action="/register" method="post">
+        {% if mensagem %}
+            <p class="form-error"><i class="bi bi-exclamation-circle"></i> {{ mensagem }}</p>
+        {% endif %}
         <div>
             <input autocomplete="off" autofocus name="usuario" placeholder="Nome de Usuário" type="text">
         </div>
+        <br>
+        <p>O nome de usuário deve possuir entre 3-20 caracteres (sem símbolos) com:</p>
+        <ul>
+            <li>Letras (a-z, A-Z)</li>
+            <li>Não pode iniciar com número</li>
+            <li>Não pode conter símbolos além de underline (_)</li>
+        </ul>
+        <br>
         <div>
             <input name="senha" placeholder="Senha" type="password">
         </div>
@@ -14,7 +25,7 @@
             <input name="confirmacao" placeholder="Confirmar Senha" type="password">
         </div>
         <br>
-        <p>A senha deve possuir entre 6-10 caracteres (sem símbolos) com:</p>
+        <p>A senha deve possuir entre 6-20 caracteres (sem símbolos) com:</p>
         <ul>
             <li>Pelo menos uma letra maiúscula</li>
             <li>Pelo menos uma letra minúscula</li>

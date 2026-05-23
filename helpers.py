@@ -24,7 +24,12 @@ cache_historico = {}
 session_requests = requests.Session()
 session_requests.headers.update(keys)
 
-
+def db_query(db, query, *params):
+    try:
+        return db.execute(query, *params)
+    except Exception as e:
+        print(e)
+        return None
 
 def apology(mensagem):
     return render_template("apology.html", mensagem=mensagem)
@@ -139,6 +144,11 @@ def brl(vl):
     formatacao = formatacao.replace(",", "x").replace(".", ",").replace("x", ".")
     return f"R$ {formatacao}"
 
+def primeira_letra_maiuscula(texto):
+    if not texto:
+        return ""
+    return texto.capitalize()
+
 def val_nome(nome):
     if len(nome) < 3 or len(nome) > 20:
         return "o nome de usuário precisa ter entre 3-20 caracteres"
@@ -154,8 +164,8 @@ def val_nome(nome):
 
 def val_senha(senha):
 
-    if len(senha) < 6 or len(senha) > 10:
-        return "a senha precisa ter entre 6-10 caracteres"
+    if len(senha) < 6 or len(senha) > 20:
+        return "a senha precisa ter entre 6-20 caracteres"
 
     tem_minuscula = False
     tem_maiuscula = False
