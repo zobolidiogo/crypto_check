@@ -4,12 +4,12 @@
 
 {% block content %}
 <h2>Bem-vindo, {{ session.get("nm_usuario") }}!</h2>
-<p>Clique na criptomoeda para ver mais detalhes.</p>
 
 {% if mensagem != "" %}
     <p>{{ mensagem }}</p>
     <p>Para realizar uma compra, explore nosso <a href="/market" class="link">mercado</a> :)</p>
 {% else %}
+    <p>Clique nas criptomoedas para ver mais detalhes.</p>
     <div class="table-wrapper">
         <table class="table">
             <thead>
