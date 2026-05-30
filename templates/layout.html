@@ -28,15 +28,24 @@
 </head>
 <body>
     <header class="header">
+        
+        <input type="checkbox" id="nav-toggle">
+
         <nav class="navbar">
+            
             <a href="/" class="navbar-brand"><img src="/static/favicon.ico" alt="Logo" class="navbar-icon"> crypto.check</a>
+            
+            <label for="nav-toggle" class="nav-toggle">
+                <span></span>
+            </label>
+            
             <ul class="navbar-nav">
                 {% if session.get("id_usuario") %}
                     <li class="nav-item" id="left"><a href="/" class="nav-link">Início</a></li>
                     <li class="nav-item" id="left"><a href="/history" class="nav-link">Histórico</a></li>
                     <li class="nav-item" id="left"><a href="/market" class="nav-link">Mercado</a></li>
                     <li class="nav-item" id="left"><a href="/about" class="nav-link">Sobre</a></li>
-                    <li class="nav-item" id="right" class="nav-link">Login: {{ session.get("nm_usuario") }}</li>
+                    <li class="nav-item" id="right"><a class="nav-link">Login: {{ session.get("nm_usuario") }}</a></li>
                     <li class="nav-item" id="right"><a href="/logout" class="nav-link">Fazer logout</a></li>
                 {% else %}
                     <li class="nav-item" id="left"><a href="/market" class="nav-link">Mercado</a></li>
@@ -46,6 +55,7 @@
                 {% endif %}
             </ul>
         </nav>
+
     </header>
     
     <main class="main">
