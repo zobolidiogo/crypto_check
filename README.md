@@ -16,7 +16,7 @@ Plataforma web para simulação de investimentos em criptomoedas com dados de me
 
 A aplicação está disponível online através do Render:
 
-🔗 **Live Demo:** https://crypto-check-vgkv.onrender.com/
+🔗 **Live Demo:** [app-crypto-check.onrender.com](https://app-crypto-check.onrender.com/)
 
 > Por utilizar o plano gratuito do Render, a aplicação pode levar alguns segundos para iniciar após períodos de inatividade.
 
