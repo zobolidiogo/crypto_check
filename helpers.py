@@ -149,16 +149,37 @@ def primeira_letra_maiuscula(texto):
         return ""
     return texto.capitalize()
 
+def val_display(nome):
+    if len(nome) < 1 or len(nome) > 20:
+        return "o nome precisa ter entre 1-20 caracteres"
+
+    if nome[0].isdigit():
+        return "o nome não pode começar com um número"
+
+    if "__" in nome:
+        return "o nome não pode conter dois _ seguidos"
+
+    if "  " in nome:
+        return "o nome não pode conter espaços consecutivos"
+
+    for caractere in nome:
+        if not (caractere.isalnum() or caractere in "_ "):
+            return "o nome só pode conter espaços, letras, números e _"
+        
+    return None
+
 def val_nome(nome):
     if len(nome) < 3 or len(nome) > 20:
         return "o nome de usuário precisa ter entre 3-20 caracteres"
 
     if nome[0].isdigit():
         return "o nome de usuário não pode começar com um número"
+    
+    permitidos = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_"
 
     for caractere in nome:
-        if not (caractere.isalnum() or caractere in "_"):
-            return "o nome de usuário só pode conter letras, números e _"
+        if not caractere in permitidos:
+            return "o nome de usuário só pode conter letras (a-z), números (0-9) e underline (_)"
 
     return None
 
@@ -167,31 +188,21 @@ def val_senha(senha):
     if len(senha) < 6 or len(senha) > 20:
         return "a senha precisa ter entre 6-20 caracteres"
 
-    tem_minuscula = False
-    tem_maiuscula = False
+    tem_letra = False
     tem_numero = False
 
     for caractere in senha:
         
-        if caractere.islower():
-            tem_minuscula = True
-
-        elif caractere.isupper():
-            tem_maiuscula = True
+        if caractere.isalpha():
+            tem_letra = True
 
         elif caractere in "0123456789":
             tem_numero = True
 
-        else:
-            return "a senha não pode conter caracteres especiais"
-
-    if not tem_minuscula:
-        return "a senha precisa conter pelo menos uma letra minúscula"
-
-    if not tem_maiuscula:
-        return "a senha precisa conter pelo menos uma letra maiúscula"
+    if not tem_letra:
+        return "a senha precisa conter pelo menos uma letra"
 
     if not tem_numero:
-        return "a senha deve conter pelo menos um número"
+        return "a senha precisa conter pelo menos um número"
 
     return None
