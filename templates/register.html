@@ -6,35 +6,20 @@
     <form action="/register" method="post">
         {% if mensagem %}
             <p class="form-error"><i class="bi bi-exclamation-circle"></i> {{ mensagem }}</p>
+            <br>
         {% endif %}
         <div>
-            <input autocomplete="off" autofocus name="nome_display" placeholder="Como gostaria de ser chamado?" type="text">
+            <input autocomplete="off" autofocus name="nome_display" placeholder="Como gostaria de ser chamado?" type="text" value="{{ nome_display if nome_display else '' }}">
         </div>
         <div>
-            <input autocomplete="off" autofocus name="usuario" placeholder="Nome de Usuário" type="text">
+            <input autocomplete="off" autofocus name="usuario" placeholder="Nome de Usuário" type="text" value="{{ usuario if usuario else '' }}">
         </div>
-        <br>
-        <p>O nome de usuário deve possuir entre 3-20 caracteres (sem símbolos) com:</p>
-        <ul>
-            <li>Letras (a-z, A-Z)</li>
-            <li>Não pode iniciar com número</li>
-            <li>Não pode conter símbolos além de underline (_)</li>
-        </ul>
-        <br>
         <div>
             <input name="senha" placeholder="Senha" type="password">
         </div>
         <div>
             <input name="confirmacao" placeholder="Confirmar Senha" type="password">
         </div>
-        <br>
-        <p>A senha deve possuir entre 6-20 caracteres (sem símbolos) com:</p>
-        <ul>
-            <li>Pelo menos uma letra maiúscula</li>
-            <li>Pelo menos uma letra minúscula</li>
-            <li>Pelo menos um número</li>
-        </ul>
-        <br>
 
         <button type="submit">Registrar</button>
     </form>
