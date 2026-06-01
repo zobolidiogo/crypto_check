@@ -1,6 +1,6 @@
 import os
 
-from helpers import db_query, index_crypto_func, apology, crypto_history_format_day, login_required, usd, brl, val_nome, val_senha
+from helpers import primeira_letra_maiuscula, db_query, val_display, index_crypto_func, apology, crypto_history_format_day, login_required, usd, brl, val_nome, val_senha
 from cs50 import SQL
 from flask import Flask, redirect, render_template, request, session
 from flask_session import Session
@@ -14,6 +14,7 @@ app.secret_key = os.getenv("SECRET_KEY")
 
 app.jinja_env.filters["usd"] = usd
 app.jinja_env.filters["brl"] = brl
+app.jinja_env.filters["primeira_letra_maiuscula"] = primeira_letra_maiuscula
 
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
@@ -40,47 +41,53 @@ def register():
     if request.method == "GET":
         return render_template("register.html")
 
-    usuario = request.form.get("usuario")
+    usuario = request.form.get("usuario", "").strip().lower()
     senha = request.form.get("senha")
     confirmacao = request.form.get("confirmacao")
+    nome_display = request.form.get("nome_display", "").strip() or usuario
 
     if not usuario:
-        return render_template("register.html", mensagem="digite um nome de usuário", usuario=usuario)
-    
+        return render_template("register.html", mensagem="digite um nome de usuário", usuario=usuario, nome_display=nome_display)
+
     if not senha:
-        return render_template("register.html", mensagem="digite uma senha", usuario=usuario)
+        return render_template("register.html", mensagem="digite uma senha", usuario=usuario, nome_display=nome_display)
     
     erro_senha = val_senha(senha)
     if erro_senha:
-        return render_template("register.html", mensagem=erro_senha, usuario=usuario)
+        return render_template("register.html", mensagem=erro_senha, usuario=usuario, nome_display=nome_display)
+
+    erro_display = val_display(nome_display)
+    if erro_display:
+        return render_template("register.html", mensagem=erro_display, usuario=usuario, nome_display=nome_display)
 
     erro_usuario = val_nome(usuario)
     if erro_usuario:
-        return render_template("register.html", mensagem=erro_usuario, usuario=usuario)
+        return render_template("register.html", mensagem=erro_usuario, usuario=usuario, nome_display=nome_display)
 
     if confirmacao != senha:
-        return render_template("register.html", mensagem="as senhas não conferem", usuario=usuario)
+        return render_template("register.html", mensagem="as senhas não conferem", usuario=usuario, nome_display=nome_display)
 
     rows = db_query(db, "select nm_usuario from T_USUARIO where nm_usuario = ?", usuario)
     if rows is None:
-        return render_template("register.html", mensagem="erro ao acessar o banco de dados", usuario=usuario)
+        return render_template("register.html", mensagem="erro ao acessar o banco de dados", usuario=usuario, nome_display=nome_display)
     
     if len(rows):
-        return render_template("register.html", mensagem="o usuário já existe", usuario=usuario)
-    
+        return render_template("register.html", mensagem="o usuário já existe", usuario=usuario, nome_display=nome_display)
+
     hash = generate_password_hash(senha)
 
     try:
-        db.execute("insert into T_USUARIO (nm_usuario, cd_hash) values (?, ?)", usuario, hash)
+        db.execute("insert into T_USUARIO (nm_display, nm_usuario, cd_hash) values (?, ?, ?)", nome_display, usuario, hash)
     except Exception as e:
-        return render_template("register.html", mensagem="erro ao cadastrar usuário", usuario=usuario)
-    
-    rows = db_query(db, "select id_usuario, nm_usuario from T_USUARIO where nm_usuario = ?", usuario)
+        return render_template("register.html", mensagem="erro ao cadastrar usuário", usuario=usuario, nome_display=nome_display)
+
+    rows = db_query(db, "select id_usuario, nm_usuario, nm_display from T_USUARIO where nm_usuario = ?", usuario)
     if rows is None:
-        return render_template("register.html", mensagem="erro ao acessar o banco de dados", usuario=usuario)
+        return render_template("register.html", mensagem="erro ao acessar o banco de dados", usuario=usuario, nome_display=nome_display)
 
     session["id_usuario"] = rows[0]["id_usuario"]
     session["nm_usuario"] = rows[0]["nm_usuario"]
+    session["nm_display"] = rows[0]["nm_display"]
 
     return redirect("/")
 
@@ -93,7 +100,7 @@ def login():
     if request.method == "GET":
         return render_template("login.html")
     
-    usuario = request.form.get("usuario")
+    usuario = request.form.get("usuario", "").strip().lower()
     senha = request.form.get("senha")
 
     if not usuario:
@@ -102,7 +109,7 @@ def login():
     if not senha:
         return render_template("login.html", mensagem="favor prover uma senha", usuario=usuario)
     
-    rows = db_query(db, "select id_usuario, nm_usuario, cd_hash from T_USUARIO where nm_usuario = ?", usuario)
+    rows = db_query(db, "select id_usuario, nm_usuario, nm_display, cd_hash from T_USUARIO where nm_usuario = ?", usuario)
     if rows is None:
         return render_template("login.html", mensagem="erro ao acessar o banco de dados", usuario=usuario)
 
@@ -111,6 +118,7 @@ def login():
     
     session["id_usuario"] = rows[0]["id_usuario"]
     session["nm_usuario"] = rows[0]["nm_usuario"]
+    session["nm_display"] = rows[0]["nm_display"]
 
     return redirect("/")
 
