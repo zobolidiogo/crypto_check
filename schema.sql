@@ -1,5 +1,6 @@
 CREATE TABLE T_USUARIO (
     id_usuario SERIAL PRIMARY KEY,
+    nm_display VARCHAR(20) NOT NULL,
     nm_usuario VARCHAR(20) UNIQUE NOT NULL,
     cd_hash TEXT NOT NULL,
     qt_dinheiro NUMERIC NOT NULL DEFAULT 10000
