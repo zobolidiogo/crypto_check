@@ -4,7 +4,7 @@
 
 {% block content %}
     {% if session.get("id_usuario") %}
-        <h2>Bem-vindo, {{ session["nm_usuario"] }}!</h2>
+        <h2>Bem-vindo, {{ session["nm_display"] }}!</h2>
         <p>Aqui estão as criptomoedas disponíveis para compra. Clique em "Mais detalhes" para ver informações adicionais e gráficos de preços.</p>
         <br>
     {% else %}
@@ -25,7 +25,7 @@
         <tbody>
             {% for crypto in estoques %}
                 <tr>
-                    <td>{{ crypto["nome"] }}</td>
+                    <td>{{ crypto["nome"] | primeira_letra_maiuscula }}</td>
                     <td>{{ crypto["preco"] | usd }}</td>
                     <td>
                         <a href="/market/{{ crypto['nome'] }}" class="link">
