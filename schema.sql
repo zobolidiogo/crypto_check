@@ -1,62 +1,64 @@
 CREATE TABLE T_USUARIO (
     id_usuario SERIAL PRIMARY KEY,
-
     nm_display VARCHAR(20) NOT NULL,
-
-    nm_usuario VARCHAR(20) UNIQUE NOT NULL,
-
-    ds_email VARCHAR(255) UNIQUE NOT NULL,
-
+    nm_usuario VARCHAR(20) NOT NULL,
+    ds_email VARCHAR(255) NOT NULL,
     st_email_verificado BOOLEAN NOT NULL DEFAULT FALSE,
-
     cd_hash TEXT NOT NULL,
-
+    ds_foto_perfil TEXT DEFAULT "/static/img/default_avatar.png",
     qt_dinheiro NUMERIC NOT NULL DEFAULT 10000,
-
     dt_criacao TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE T_TRANSACAO (
     id_transacao SERIAL PRIMARY KEY,
-
     id_usuario INTEGER NOT NULL,
-
     nm_crypto TEXT NOT NULL,
-
     qt_crypto NUMERIC NOT NULL,
-
     vl_unitario_usd NUMERIC NOT NULL,
-
-    tp_transacao TEXT NOT NULL
-        CHECK (tp_transacao IN ('BUY', 'SELL')),
-
-    dt_transacao TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    FOREIGN KEY (id_usuario)
-        REFERENCES T_USUARIO(id_usuario)
-        ON DELETE CASCADE
+    tp_transacao VARCHAR(4) NOT NULL,
+    dt_transacao TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE T_CODIGO_EMAIL (
     id_codigo SERIAL PRIMARY KEY,
-
     id_usuario INTEGER NOT NULL,
-
     cd_codigo VARCHAR(6) NOT NULL,
-
-    tp_codigo VARCHAR(20) NOT NULL
-        CHECK (
-            tp_codigo IN (
-                'VERIFY_EMAIL',
-                'RESET_PASSWORD'
-            )
-        ),
-
+    tp_codigo VARCHAR(5) NOT NULL,
     dt_expiracao TIMESTAMP NOT NULL,
-
-    st_utilizado BOOLEAN NOT NULL DEFAULT FALSE,
-
-    FOREIGN KEY (id_usuario)
-        REFERENCES T_USUARIO(id_usuario)
-        ON DELETE CASCADE
+    st_utilizado BOOLEAN NOT NULL DEFAULT FALSE
 );
+
+ALTER TABLE T_USUARIO
+ADD CONSTRAINT UN_NOME_USUARIO
+UNIQUE (nm_usuario);
+
+ALTER TABLE T_USUARIO
+ADD CONSTRAINT UN_EMAIL_USUARIO
+UNIQUE (ds_email);
+
+ALTER TABLE T_TRANSACAO
+ADD CONSTRAINT CK_TIPO_TRANSACAO
+CHECK (tp_transacao IN ('BUY', 'SELL'));
+
+ALTER TABLE T_TRANSACAO
+ADD CONSTRAINT FK_TRANSACAO_USUARIO
+FOREIGN KEY (id_usuario)
+REFERENCES T_USUARIO(id_usuario)
+ON DELETE CASCADE;
+
+ALTER TABLE T_CODIGO_EMAIL
+ADD CONSTRAINT CK_TIPO_CODIGO
+CHECK (tp_codigo IN ('EMAIL', 'PASS'));
+
+ALTER TABLE T_CODIGO_EMAIL
+ADD CONSTRAINT FK_CODIGO_USUARIO
+FOREIGN KEY (id_usuario)
+REFERENCES T_USUARIO(id_usuario)
+ON DELETE CASCADE;
+
+CREATE INDEX IDX_TRANSACAO_USUARIO
+ON T_TRANSACAO(id_usuario);
+
+CREATE INDEX IDX_CODIGO_USUARIO
+ON T_CODIGO_EMAIL(id_usuario);
