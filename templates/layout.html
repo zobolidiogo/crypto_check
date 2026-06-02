@@ -45,7 +45,11 @@
                     <li class="nav-item" id="left"><a href="/history" class="nav-link">Histórico</a></li>
                     <li class="nav-item" id="left"><a href="/market" class="nav-link">Mercado</a></li>
                     <li class="nav-item" id="left"><a href="/about" class="nav-link">Sobre</a></li>
-                    <li class="nav-item" id="right"><a class="nav-link">Login: {{ session.get("nm_usuario") }}</a></li>
+                    {% if session["st_email_verificado"] == False %}
+                        <li class="nav-item" id="right"><a href="/options" class="nav-link yellow">Login: {{ session.get("nm_usuario") }}*</a></li>
+                    {% else %}
+                        <li class="nav-item" id="right"><a href="/options" class="nav-link">Login: {{ session.get("nm_usuario") }}</a></li>
+                    {% endif %}
                     <li class="nav-item" id="right"><a href="/logout" class="nav-link">Fazer logout</a></li>
                 {% else %}
                     <li class="nav-item" id="left"><a href="/market" class="nav-link">Mercado</a></li>
