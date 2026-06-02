@@ -59,38 +59,23 @@ def register():
 
     if not email:
         return render_template("register.html", mensagem="digite um email", usuario=usuario, nome_display=nome_display, email=email)
-
     if not usuario:
         return render_template("register.html", mensagem="digite um nome de usuário", usuario=usuario, nome_display=nome_display, email=email)
-
     if not senha:
         return render_template("register.html", mensagem="digite uma senha", usuario=usuario, nome_display=nome_display, email=email)
-
-
 
     erro_senha = val_senha(senha)
     if erro_senha:
         return render_template("register.html", mensagem=erro_senha, usuario=usuario, nome_display=nome_display, email=email)
-
-
-
     erro_display = val_display(nome_display)
     if erro_display:
         return render_template("register.html", mensagem=erro_display, usuario=usuario, nome_display=nome_display, email=email)
-
-
-
     erro_usuario = val_nome(usuario)
     if erro_usuario:
         return render_template("register.html", mensagem=erro_usuario, usuario=usuario, nome_display=nome_display, email=email)
-
-
-
     erro_email = val_email(email)
     if erro_email:
         return render_template("register.html", mensagem=erro_email, usuario=usuario, nome_display=nome_display, email=email)
-
-
 
     if confirmacao != senha:
         return render_template("register.html", mensagem="as senhas não conferem", usuario=usuario, nome_display=nome_display, email=email)
@@ -160,6 +145,18 @@ def login():
     session["st_email_verificado"] = rows[0]["st_email_verificado"]
     session["ds_foto_perfil"] = rows[0]["ds_foto_perfil"]
     return redirect("/")
+
+@app.route("/logout")
+def logout():
+
+    session.clear()
+
+    return redirect("/")
+
+@app.route("/options")
+@login_required
+def options(): ## opções: verificar email | trocar de senha | alterar foto de perfil | alterar nome de visualização
+    return render_template("options.html", display=session["nm_display"], usuario=session["nm_usuario"], email=session["ds_email"], verificado=session["st_email_verificado"], foto=session["ds_foto_perfil"])
 
 @app.route("/")
 @login_required
