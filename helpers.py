@@ -135,15 +135,6 @@ def usd(vl):
         return "$ 0.00"
     return f"$ {formatacao:,.2f}"
 
-def brl(vl):
-    try:
-        vl = Decimal(vl)
-    except(TypeError, ValueError, InvalidOperation):
-        return "R$ 0,00"
-    formatacao = f"{vl:,.2f}"
-    formatacao = formatacao.replace(",", "x").replace(".", ",").replace("x", ".")
-    return f"R$ {formatacao}"
-
 def primeira_letra_maiuscula(texto):
     if not texto:
         return ""
@@ -180,6 +171,24 @@ def val_nome(nome):
     for caractere in nome:
         if not caractere in permitidos:
             return "o nome de usuário só pode conter letras (a-z), números (0-9) e underline (_)"
+
+    return None
+
+def val_email(email):
+    
+    if len(email) > 255 or email.count("@") != 1:
+        return "email inválido"
+    
+    usuario, dominio = email.split("@")
+
+    if (
+        not usuario
+        or "." not in dominio
+        or dominio.startswith(".")
+        or dominio.endswith(".")
+        or ".." in dominio
+    ):
+        return "email inválido"
 
     return None
 
