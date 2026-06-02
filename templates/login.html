@@ -5,14 +5,14 @@
 {% block content %}
     <form action="/login" method="post">
         {% if mensagem %}
-            <p class="form-error"><i class="bi bi-exclamation-circle"></i>{{ mensagem }}</p>
+            <p class="form-error"><i class="bi bi-exclamation-circle"></i>{{ " " + mensagem }}</p>
             <br>
         {% endif %}
         <div>
-            <input autocomplete="off" autofocus name="usuario" placeholder="Nome de Usuário" type="text" value="{{ usuario if usuario else '' }}">
+            <input autocomplete="off" autofocus name="usuario" placeholder="digite seu email ou nome de usuário" type="text" value="{{ usuario if usuario else '' }}">
         </div>
         <div>
-            <input name="senha" placeholder="Senha" type="password">
+            <input name="senha" placeholder="digite sua senha" type="password">
         </div>
         <button type="submit">Fazer login</button>
     </form>
