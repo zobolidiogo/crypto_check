@@ -9,16 +9,19 @@
             <br>
         {% endif %}
         <div>
-            <input autocomplete="off" autofocus name="nome_display" placeholder="Como gostaria de ser chamado?" type="text" value="{{ nome_display if nome_display else '' }}">
+            <input autocomplete="off" autofocus name="nome_display" placeholder="como gostaria de ser chamado?" type="text" value="{{ nome_display if nome_display else '' }}">
         </div>
         <div>
-            <input autocomplete="off" autofocus name="usuario" placeholder="Nome de Usuário" type="text" value="{{ usuario if usuario else '' }}">
+            <input autocomplete="off" autofocus name="usuario" placeholder="nome de usuário" type="text" value="{{ usuario if usuario else '' }}"><a class="form-error"> *</a>
         </div>
         <div>
-            <input name="senha" placeholder="Senha" type="password">
+            <input autocomplete="off" autofocus name="email" placeholder="digite seu email" type="text" value="{{ email if email else '' }}"><a class="form-error"> *</a>
         </div>
         <div>
-            <input name="confirmacao" placeholder="Confirmar Senha" type="password">
+            <input name="senha" placeholder="digite sua senha" type="password"><a class="form-error"> *</a>
+        </div>
+        <div>
+            <input name="confirmacao" placeholder="confirme sua senha" type="password"><a class="form-error"> *</a>
         </div>
 
         <button type="submit">Registrar</button>
