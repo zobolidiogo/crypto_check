@@ -633,6 +633,23 @@ button:active { transform: translateY(0); }
     margin-top: 36px;
 }
 
+.yellow { color: yellow; }
+.red { color: red; }
+
+.profile-pic {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 50%;
+    margin-bottom: 15px;
+    border: 3px solid var(--border);
+}
+
+.success {
+    color: var(--success);
+    font-weight: 600;
+}
+
 @media (max-width: 900px) {
     .navbar { gap: 8px; }
 }
