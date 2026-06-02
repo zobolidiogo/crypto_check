@@ -1,4 +1,5 @@
 import requests
+import resend
 import time
 import os
 
@@ -13,6 +14,8 @@ load_dotenv()
 keys = {
     "x-cg-demo-api-key": os.getenv("COINGECKO_API_KEY")
 }
+
+resend.api_key = os.getenv("RESEND_API_KEY")
 
 BASE_COINGECKO_URL = "https://api.coingecko.com/api/v3"
 
@@ -125,7 +128,15 @@ def login_required(f):
         if session.get("id_usuario") is None:
             return redirect("/market")
         return f(*args, **kwargs)
-    
+    return decorated_function
+
+def non_verified_required(f):
+
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if session.get("id_usuario") is None:
+            return redirect("/options", mensagem_verify="você já está verificado")
+        return f(*args, **kwargs)
     return decorated_function
 
 def usd(vl):
@@ -215,3 +226,11 @@ def val_senha(senha):
         return "a senha precisa conter pelo menos um número"
 
     return None
+
+def enviar_email(destinatario, assunto, html):
+    return resend.Emails.send({
+        "from": "onboarding@resend.dev",
+        "to": destinatario,
+        "subject": assunto,
+        "html": html
+    })
