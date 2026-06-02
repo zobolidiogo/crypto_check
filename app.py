@@ -1,4 +1,5 @@
 import os
+import random
 
 from cs50 import SQL
 from flask import Flask, redirect, render_template, request, session
@@ -12,11 +13,13 @@ from helpers import (
     index_crypto_func, 
     crypto_history_format_day,
     apology, 
-    login_required, 
+    login_required,
+    non_verified_required, 
     usd, 
     val_nome, 
     val_senha,
-    val_email)
+    val_email,
+    enviar_email)
 
 load_dotenv()
 
@@ -41,6 +44,10 @@ def after_request(response):
     response.headers["Expires"] = 0
     response.headers["Pragma"] = "no-cache"
     return response
+
+
+
+
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -111,6 +118,10 @@ def register():
     session["ds_foto_perfil"] = rows[0]["ds_foto_perfil"]
     return redirect("/")
 
+
+
+
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
 
@@ -146,6 +157,10 @@ def login():
     session["ds_foto_perfil"] = rows[0]["ds_foto_perfil"]
     return redirect("/")
 
+
+
+
+
 @app.route("/logout")
 def logout():
 
@@ -153,10 +168,38 @@ def logout():
 
     return redirect("/")
 
+
+
+
+
 @app.route("/options")
 @login_required
 def options(): ## opções: verificar email | trocar de senha | alterar foto de perfil | alterar nome de visualização
     return render_template("options.html", display=session["nm_display"], usuario=session["nm_usuario"], email=session["ds_email"], verificado=session["st_email_verificado"], foto=session["ds_foto_perfil"])
+
+
+
+
+
+@app.route("/verify")
+@login_required
+@non_verified_required
+def verify(): ## TODO
+    codigo = random.randint(100000,999999)
+
+    db_query(db, "insert into T_CODIGO_EMAIL (id_usuario, cd_codigo, tp_codigo, dt_expiracao) values (?, ?, ?, NOW() + INTERVAL '15 minutes')")
+
+    assunto = "[CRYPTO.CHECK] Verificação email"
+    mensagem = f"""
+        <p>Olá, {session["nm_display"]}</p>
+        <p>Obrigado por usar crypto.check</p>
+        <p>Seu código de verificação é: {codigo}</p>
+    """
+    enviar_email(session["ds_email"], assunto, mensagem)
+
+
+
+
 
 @app.route("/")
 @login_required
@@ -224,6 +267,10 @@ def index():
 
     return render_template("index.html", portfolio=portfolio, total=total, dinheiro=dinheiro, mensagem=mensagem)
 
+
+
+
+
 @app.route("/market")
 def market():
 
@@ -258,6 +305,11 @@ def market():
 
     return render_template("market.html", estoques=estoques)
 
+
+
+
+
+
 @app.route("/market/<crypto>")
 def pagina_crypto(crypto):
 
@@ -286,6 +338,10 @@ def pagina_crypto(crypto):
         min_preco = None
 
     return render_template("crypto.html", days=days, crypto=crypto, preco=preco, historico=historico, max_preco=max_preco, min_preco=min_preco)
+
+
+
+
 
 @app.route("/buy/<crypto>", methods=["GET", "POST"])
 @login_required
@@ -340,6 +396,10 @@ def buy(crypto):
         return apology("erro ao acessar o banco de dados")
 
     return redirect("/")
+
+
+
+
 
 @app.route("/sell/<crypto>", methods=["GET", "POST"])
 @login_required
@@ -398,6 +458,10 @@ def sell(crypto):
         return apology("erro ao acessar o banco de dados")
     return redirect("/")
 
+
+
+
+
 @app.route("/history")
 @login_required
 def history():
@@ -407,9 +471,17 @@ def history():
     
     return render_template("history.html", transactions=transactions)
 
+
+
+
+
 @app.route("/about")
 def about():
     return render_template("about.html")
+
+
+
+
 
 if __name__ == "__main__":
     app.run(debug=True)
