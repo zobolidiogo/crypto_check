@@ -1,0 +1,49 @@
+{% extends "layout.html" %}
+
+{% block title %}Opções{% endblock %}
+
+{% block content %}
+    <h1>Configurações da Conta</h1>
+
+    <div class="dashboard">
+
+        <div class="card">
+            <h3>Nome de usuário</h3>
+            <h4>{{ usuario }}</h4>
+            <br>
+            <h3>Nome de exibição</h3>
+
+            <h4>{{ display }}</h4>
+            <br>
+            <a href="/change-display" class="link">Alterar nome de exibição</a>
+        </div>
+
+        <div class="card">
+            <h3>Email</h3>
+            <h4>{{ email }}</h4>
+            {% if verificado %}
+                <span class="success">Verificado</span>
+            {% else %}
+                <span class="form-error">Não verificado</span>
+                <br>
+                <a href="/verify" class="link">Enviar email de verificação</a>
+            {% endif %}
+            <br><br>
+            <a href="/delete-account" class="ask-link red">Excluir Conta</a>
+        </div>
+
+        <div class="card">
+            <h3>Senha</h3>
+            <h4>••••••••••••</h4>
+            <br>
+            <a href="/change-password" class="link">Alterar senha</a>
+        </div>
+
+        <div class="card">
+            <h3>Foto de perfil</h3>
+            <img src="{{ foto }}" alt="Foto de perfil" class="profile-pic">
+            <a href="/change-photo" class="link">Alterar foto</a>
+        </div>
+
+    </div>
+{% endblock %}
