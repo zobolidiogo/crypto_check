@@ -70,7 +70,6 @@ h3 { font-size: clamp(.95rem, 3vw, 1.05rem); margin-bottom: .4em; }
 
 p { color: #334155; overflow-wrap: break-word; }
 
-/* ---------- HEADER / NAV ---------- */
 .header {
     background: var(--nav-grad);
     color: white;
@@ -116,7 +115,6 @@ p { color: #334155; overflow-wrap: break-word; }
     -webkit-text-fill-color: initial;
 }
 
-/* Hamburger toggle (add <input type="checkbox" id="nav-toggle"> + <label for="nav-toggle" class="nav-toggle"> in HTML for mobile menu) */
 .nav-toggle {
     display: none;
     cursor: pointer;
@@ -182,7 +180,6 @@ p { color: #334155; overflow-wrap: break-word; }
 #right { margin-left: auto; }
 #right + #right { margin-left: 0; }
 
-/* ---------- MAIN ---------- */
 .main {
     max-width: 1200px;
     margin: auto;
@@ -195,7 +192,6 @@ p { color: #334155; overflow-wrap: break-word; }
     to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ---------- TABLE ---------- */
 .table-wrapper {
     width: 100%;
     overflow-x: auto;
@@ -248,7 +244,6 @@ p { color: #334155; overflow-wrap: break-word; }
 .table tbody tr:last-child td { border-bottom: none; }
 .table td { color: #1e293b; font-variant-numeric: tabular-nums; }
 
-/* ---------- LINKS / BUTTONS ---------- */
 .link {
     background: var(--primary-grad);
     color: white;
@@ -282,7 +277,6 @@ p { color: #334155; overflow-wrap: break-word; }
 .ask-link:hover { transform: translateY(-1px); box-shadow: 0 8px 20px -6px rgba(99,102,241,.6); filter: brightness(1.05); }
 .ask-link:active { transform: translateY(0); }
 
-/* ---------- FORM ---------- */
 form { margin-top: 24px; }
 form > div { margin-bottom: 12px; }
 
@@ -299,7 +293,12 @@ input, textarea, select {
     transition: border-color .15s, box-shadow .15s;
 }
 
-/* manter largura confortável apenas em telas grandes */
+.form-error {
+    color: var(--danger);
+    font-size: 13px;
+    margin-top: 4px;
+}
+
 @media (min-width: 640px) {
     form > div > input:not([type="checkbox"]):not([type="radio"]) { width: 320px; }
 }
@@ -331,7 +330,6 @@ button {
 button:hover { transform: translateY(-1px); box-shadow: 0 10px 22px -8px rgba(99,102,241,.65); filter: brightness(1.05); }
 button:active { transform: translateY(0); }
 
-/* ---------- DASHBOARD CARDS ---------- */
 .dashboard {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -385,7 +383,6 @@ button:active { transform: translateY(0); }
 #principal h3 { color: rgba(255,255,255,.85); }
 #principal p { color: white; }
 
-/* ---------- CHART ---------- */
 .chart-container {
     margin-top: 32px;
     background: var(--surface);
@@ -421,7 +418,6 @@ button:active { transform: translateY(0); }
     overflow-wrap: anywhere;
 }
 
-/* ---------- FOOTER ---------- */
 .footer {
     margin-top: clamp(40px, 8vw, 70px);
     background: var(--nav-grad);
@@ -462,7 +458,6 @@ button:active { transform: translateY(0); }
 
 .contact-links a:hover { color: white; background: rgba(255,255,255,.08); }
 
-/* ---------- APOLOGY ---------- */
 .apology-container {
     text-align: center;
     margin: 80px auto 0;
@@ -506,7 +501,6 @@ button:active { transform: translateY(0); }
 .main ul { padding-left: 20px; color: #475569; }
 .main ul li { margin: 4px 0; }
 
-/* ---------- FOOTER CONTACT ---------- */
 .contact-section { margin-top: 24px; }
 
 .contact-section h3 {
@@ -599,7 +593,6 @@ button:active { transform: translateY(0); }
 
 .contact-form button { width: 100%; margin-top: 4px; }
 
-/* ---------- ABOUT ---------- */
 .about-container { max-width: 900px; margin: auto; }
 .about-title { margin-bottom: 24px; }
 
@@ -640,14 +633,10 @@ button:active { transform: translateY(0); }
     margin-top: 36px;
 }
 
-/* ---------- BREAKPOINTS ---------- */
-
-/* Tablet */
 @media (max-width: 900px) {
     .navbar { gap: 8px; }
 }
 
-/* Mobile grande */
 @media (max-width: 768px) {
     .navbar-brand { margin-right: 0; }
 
@@ -680,7 +669,6 @@ button:active { transform: translateY(0); }
     .apology-container { margin-top: 40px; }
 }
 
-/* Mobile pequeno */
 @media (max-width: 480px) {
     .navbar { padding: 10px 14px; }
 
@@ -697,14 +685,12 @@ button:active { transform: translateY(0); }
     .about-buttons button { width: 100%; text-align: center; }
 }
 
-/* Telas muito pequenas */
 @media (max-width: 360px) {
     .main { padding: 16px 10px 28px; }
     .card { padding: 18px 16px; }
     h1 { font-size: 1.3rem; }
 }
 
-/* Acessibilidade: reduzir animações */
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
         animation-duration: .001ms !important;
