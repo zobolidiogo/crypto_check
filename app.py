@@ -1,11 +1,22 @@
 import os
 
-from helpers import primeira_letra_maiuscula, db_query, val_display, index_crypto_func, apology, crypto_history_format_day, login_required, usd, brl, val_nome, val_senha
 from cs50 import SQL
 from flask import Flask, redirect, render_template, request, session
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 from dotenv import load_dotenv
+
+from helpers import (
+    primeira_letra_maiuscula, 
+    db_query, val_display, 
+    index_crypto_func, 
+    crypto_history_format_day,
+    apology, 
+    login_required, 
+    usd, 
+    val_nome, 
+    val_senha,
+    val_email)
 
 load_dotenv()
 
@@ -13,7 +24,6 @@ app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY")
 
 app.jinja_env.filters["usd"] = usd
-app.jinja_env.filters["brl"] = brl
 app.jinja_env.filters["primeira_letra_maiuscula"] = primeira_letra_maiuscula
 
 app.config["SESSION_PERMANENT"] = False
@@ -41,54 +51,79 @@ def register():
     if request.method == "GET":
         return render_template("register.html")
 
+    email = request.form.get("email", "").strip().lower()
     usuario = request.form.get("usuario", "").strip().lower()
     senha = request.form.get("senha")
     confirmacao = request.form.get("confirmacao")
     nome_display = request.form.get("nome_display", "").strip() or usuario
 
+    if not email:
+        return render_template("register.html", mensagem="digite um email", usuario=usuario, nome_display=nome_display, email=email)
+
     if not usuario:
-        return render_template("register.html", mensagem="digite um nome de usuário", usuario=usuario, nome_display=nome_display)
+        return render_template("register.html", mensagem="digite um nome de usuário", usuario=usuario, nome_display=nome_display, email=email)
 
     if not senha:
-        return render_template("register.html", mensagem="digite uma senha", usuario=usuario, nome_display=nome_display)
-    
+        return render_template("register.html", mensagem="digite uma senha", usuario=usuario, nome_display=nome_display, email=email)
+
+
+
     erro_senha = val_senha(senha)
     if erro_senha:
-        return render_template("register.html", mensagem=erro_senha, usuario=usuario, nome_display=nome_display)
+        return render_template("register.html", mensagem=erro_senha, usuario=usuario, nome_display=nome_display, email=email)
+
+
 
     erro_display = val_display(nome_display)
     if erro_display:
-        return render_template("register.html", mensagem=erro_display, usuario=usuario, nome_display=nome_display)
+        return render_template("register.html", mensagem=erro_display, usuario=usuario, nome_display=nome_display, email=email)
+
+
 
     erro_usuario = val_nome(usuario)
     if erro_usuario:
-        return render_template("register.html", mensagem=erro_usuario, usuario=usuario, nome_display=nome_display)
+        return render_template("register.html", mensagem=erro_usuario, usuario=usuario, nome_display=nome_display, email=email)
+
+
+
+    erro_email = val_email(email)
+    if erro_email:
+        return render_template("register.html", mensagem=erro_email, usuario=usuario, nome_display=nome_display, email=email)
+
+
 
     if confirmacao != senha:
-        return render_template("register.html", mensagem="as senhas não conferem", usuario=usuario, nome_display=nome_display)
+        return render_template("register.html", mensagem="as senhas não conferem", usuario=usuario, nome_display=nome_display, email=email)
 
-    rows = db_query(db, "select nm_usuario from T_USUARIO where nm_usuario = ?", usuario)
-    if rows is None:
-        return render_template("register.html", mensagem="erro ao acessar o banco de dados", usuario=usuario, nome_display=nome_display)
-    
-    if len(rows):
-        return render_template("register.html", mensagem="o usuário já existe", usuario=usuario, nome_display=nome_display)
+    rows_nome = db_query(db, "select nm_usuario from T_USUARIO where nm_usuario = ?", usuario)
+    if rows_nome is None:
+        return render_template("register.html", mensagem="erro ao acessar o banco de dados", usuario=usuario, nome_display=nome_display, email=email)
+    if len(rows_nome):
+        return render_template("register.html", mensagem="o usuário já existe", usuario=usuario, nome_display=nome_display, email=email)
+
+    rows_email = db_query(db, "select ds_email from T_USUARIO where ds_email = ?", email)
+    if rows_email is None:
+        return render_template("register.html", mensagem="erro ao acessar o banco de dados", usuario=usuario, nome_display=nome_display, email=email)
+    if len(rows_email):
+        return render_template("register.html", mensagem="o email já está em uso", usuario=usuario, nome_display=nome_display, email=email)
 
     hash = generate_password_hash(senha)
 
     try:
-        db.execute("insert into T_USUARIO (nm_display, nm_usuario, cd_hash) values (?, ?, ?)", nome_display, usuario, hash)
+        db.execute("insert into T_USUARIO (nm_display, nm_usuario, ds_email, cd_hash) values (?, ?, ?, ?)", nome_display, usuario, email, hash)
     except Exception as e:
-        return render_template("register.html", mensagem="erro ao cadastrar usuário", usuario=usuario, nome_display=nome_display)
+        return render_template("register.html", mensagem="erro ao cadastrar usuário", usuario=usuario, nome_display=nome_display, email=email)
 
-    rows = db_query(db, "select id_usuario, nm_usuario, nm_display from T_USUARIO where nm_usuario = ?", usuario)
+    rows = db_query(db, "select id_usuario, nm_usuario, nm_display, ds_email, st_email_verificado, ds_foto_perfil from T_USUARIO where nm_usuario = ? and ds_email = ?", usuario, email)
     if rows is None:
-        return render_template("register.html", mensagem="erro ao acessar o banco de dados", usuario=usuario, nome_display=nome_display)
+        return render_template("register.html", mensagem="erro ao acessar o banco de dados", usuario=usuario, nome_display=nome_display, email=email)
 
     session["id_usuario"] = rows[0]["id_usuario"]
     session["nm_usuario"] = rows[0]["nm_usuario"]
     session["nm_display"] = rows[0]["nm_display"]
-
+    session["ds_email"] = rows[0]["ds_email"]
+    session["st_email_verificado"] = rows[0]["st_email_verificado"]
+    session["ds_foto_perfil"] = rows[0]["ds_foto_perfil"]
     return redirect("/")
 
 @app.route("/login", methods=["GET", "POST"])
@@ -100,33 +135,30 @@ def login():
     if request.method == "GET":
         return render_template("login.html")
     
-    usuario = request.form.get("usuario", "").strip().lower()
+    usuario_email = request.form.get("usuario", "").strip().lower()
     senha = request.form.get("senha")
 
-    if not usuario:
-        return render_template("login.html", mensagem="favor prover um usuário", usuario=usuario)
-    
+    if not usuario_email:
+        return render_template("login.html", mensagem="favor prover um usuário", usuario=usuario_email)
+
     if not senha:
-        return render_template("login.html", mensagem="favor prover uma senha", usuario=usuario)
-    
-    rows = db_query(db, "select id_usuario, nm_usuario, nm_display, cd_hash from T_USUARIO where nm_usuario = ?", usuario)
+        return render_template("login.html", mensagem="favor prover uma senha", usuario=usuario_email)
+
+    variavel = "nm_usuario" if "@" not in usuario_email else "ds_email"
+
+    rows = db_query(db, f"select id_usuario, nm_usuario, nm_display, ds_email, st_email_verificado, cd_hash, ds_foto_perfil from T_USUARIO where {variavel} = ?", usuario_email)
     if rows is None:
-        return render_template("login.html", mensagem="erro ao acessar o banco de dados", usuario=usuario)
+        return render_template("login.html", mensagem="erro ao acessar o banco de dados", usuario=usuario_email)
 
     if len(rows) != 1 or not check_password_hash(rows[0]["cd_hash"], senha):
-        return render_template("login.html", mensagem="usuário e/ou senha inválido(s)", usuario=usuario)
+        return render_template("login.html", mensagem="usuário e/ou senha inválido(s)", usuario=usuario_email)
     
     session["id_usuario"] = rows[0]["id_usuario"]
     session["nm_usuario"] = rows[0]["nm_usuario"]
     session["nm_display"] = rows[0]["nm_display"]
-
-    return redirect("/")
-
-@app.route("/logout")
-def logout():
-
-    session.clear()
-
+    session["ds_email"] = rows[0]["ds_email"]
+    session["st_email_verificado"] = rows[0]["st_email_verificado"]
+    session["ds_foto_perfil"] = rows[0]["ds_foto_perfil"]
     return redirect("/")
 
 @app.route("/")
