@@ -5,7 +5,8 @@
 {% block content %}
     <form action="/login" method="post">
         {% if mensagem %}
-            <p class="form-error"><i class="bi bi-exclamation-circle"></i> {{ mensagem }}</p>
+            <p class="form-error"><i class="bi bi-exclamation-circle"></i>{{ mensagem }}</p>
+            <br>
         {% endif %}
         <div>
             <input autocomplete="off" autofocus name="usuario" placeholder="Nome de Usuário" type="text" value="{{ usuario if usuario else '' }}">
