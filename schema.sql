@@ -5,7 +5,7 @@ CREATE TABLE T_USUARIO (
     ds_email VARCHAR(255) NOT NULL,
     st_email_verificado BOOLEAN NOT NULL DEFAULT FALSE,
     cd_hash TEXT NOT NULL,
-    ds_foto_perfil TEXT DEFAULT "/static/img/default_avatar.png",
+    ds_foto_perfil TEXT DEFAULT '/static/img/default_avatar.png',
     qt_dinheiro NUMERIC NOT NULL DEFAULT 10000,
     dt_criacao TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -16,15 +16,15 @@ CREATE TABLE T_TRANSACAO (
     nm_crypto TEXT NOT NULL,
     qt_crypto NUMERIC NOT NULL,
     vl_unitario_usd NUMERIC NOT NULL,
-    tp_transacao VARCHAR(4) NOT NULL,
+    tp_transacao CHAR(1) NOT NULL,
     dt_transacao TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE T_CODIGO_EMAIL (
     id_codigo SERIAL PRIMARY KEY,
     id_usuario INTEGER NOT NULL,
-    cd_codigo VARCHAR(6) NOT NULL,
-    tp_codigo VARCHAR(5) NOT NULL,
+    cd_codigo VARCHAR(4) NOT NULL,
+    tp_codigo CHAR(1) NOT NULL,
     dt_expiracao TIMESTAMP NOT NULL,
     st_utilizado BOOLEAN NOT NULL DEFAULT FALSE
 );
@@ -39,7 +39,7 @@ UNIQUE (ds_email);
 
 ALTER TABLE T_TRANSACAO
 ADD CONSTRAINT CK_TIPO_TRANSACAO
-CHECK (tp_transacao IN ('BUY', 'SELL'));
+CHECK (tp_transacao IN ('B', 'S'));
 
 ALTER TABLE T_TRANSACAO
 ADD CONSTRAINT FK_TRANSACAO_USUARIO
@@ -49,7 +49,7 @@ ON DELETE CASCADE;
 
 ALTER TABLE T_CODIGO_EMAIL
 ADD CONSTRAINT CK_TIPO_CODIGO
-CHECK (tp_codigo IN ('EMAIL', 'PASS'));
+CHECK (tp_codigo IN ('E', 'P'));
 
 ALTER TABLE T_CODIGO_EMAIL
 ADD CONSTRAINT FK_CODIGO_USUARIO
