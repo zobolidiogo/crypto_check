@@ -184,16 +184,17 @@ def options(): ## opções: verificar email | trocar de senha | alterar foto de 
 @app.route("/verify")
 @login_required
 @non_verified_required
-def verify(): ## TODO
+def verify():
     codigo = random.randint(100000,999999)
 
-    db_query(db, "insert into T_CODIGO_EMAIL (id_usuario, cd_codigo, tp_codigo, dt_expiracao) values (?, ?, ?, NOW() + INTERVAL '15 minutes')")
+    db_query(db, "insert into T_CODIGO_EMAIL (id_usuario, cd_codigo, tp_codigo, dt_expiracao) values (?, ?, ?, NOW() + INTERVAL '15 minutes')", session["id_usuario"], codigo, "VERIFICACAO_EMAIL")
 
     assunto = "[CRYPTO.CHECK] Verificação email"
     mensagem = f"""
         <p>Olá, {session["nm_display"]}</p>
         <p>Obrigado por usar crypto.check</p>
         <p>Seu código de verificação é: {codigo}</p>
+        <p>Este código é válido por 15 minutos</p>
     """
     enviar_email(session["ds_email"], assunto, mensagem)
 
