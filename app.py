@@ -181,22 +181,48 @@ def options(): ## opções: verificar email | trocar de senha | alterar foto de 
 
 
 
-@app.route("/verify")
+@app.route("/verify", methods=["GET", "POST"])
 @login_required
 @non_verified_required
 def verify():
-    codigo = random.randint(100000,999999)
+    
+    if request.method == "GET":
+        codigo = random.randint(1000,9999)
+        
+        try:
+            db.execute("insert into T_CODIGO_EMAIL (id_usuario, cd_codigo, tp_codigo, dt_expiracao) values (?, ?, ?, NOW() + INTERVAL '15 minutes')", session["id_usuario"], codigo, "E")
+        except Exception as e:
+            print(e)
+            db.execute("ROLLBACK")
+            return apology("erro ao acessar o banco de dados")
+        
+        enviar_email(
+            session["ds_email"], 
+            "[CRYPTO.CHECK] Verificação email",
+            f"""<p>Olá, {session["nm_display"]}</p>
+            <p>Obrigado por usar crypto.check</p>
+            <p>Seu código de verificação é: {codigo}</p>
+            <p>Este código é válido por 15 minutos</p>
+            """)
 
-    db_query(db, "insert into T_CODIGO_EMAIL (id_usuario, cd_codigo, tp_codigo, dt_expiracao) values (?, ?, ?, NOW() + INTERVAL '15 minutes')", session["id_usuario"], codigo, "VERIFICACAO_EMAIL")
+        return render_template("verification.html")
 
-    assunto = "[CRYPTO.CHECK] Verificação email"
-    mensagem = f"""
-        <p>Olá, {session["nm_display"]}</p>
-        <p>Obrigado por usar crypto.check</p>
-        <p>Seu código de verificação é: {codigo}</p>
-        <p>Este código é válido por 15 minutos</p>
-    """
-    enviar_email(session["ds_email"], assunto, mensagem)
+    codigo = request.form.get("codigo")
+
+    row = db_query("select cd_codigo from T_CODIGO_EMAIL where id_usuario = ? and tp_codigo = 'E' and dt_expiracao > NOW()", session["id_usuario"])[0]
+    if row is None:
+        return apology("erro ao acessar banco de dados")
+
+    if codigo == row:
+        try:
+            db.execute("update T_USUARIO set st_email_verificado = True where id_usuario = ?", session["id_usuario"])
+        except Exception as e:
+            print(e)
+            db.execute("ROLLBACK")
+            return apology("erro ao acessar o banco de dados")
+
+    return redirect("/options")
+
 
 
 
@@ -206,13 +232,7 @@ def verify():
 @login_required
 def index():
 
-    rows = db_query(db, """
-        select nm_crypto, sum(qt_crypto) as qt_compras
-        from T_TRANSACAO
-        where id_usuario = ?
-        group by nm_crypto
-        having sum(qt_crypto) > 0
-    """, session["id_usuario"])
+    rows = db_query(db, "select nm_crypto, sum(qt_crypto) as qt_compras from T_TRANSACAO where id_usuario = ? group by nm_crypto having sum(qt_crypto) > 0", session["id_usuario"])
 
     if rows is None:
         return apology("erro ao acessar o banco de dados")
@@ -389,7 +409,7 @@ def buy(crypto):
     try:
         db.execute("BEGIN TRANSACTION")
         db.execute("update T_USUARIO set qt_dinheiro = qt_dinheiro - ? where id_usuario = ?", custo_total, session["id_usuario"])
-        db.execute("insert into T_TRANSACAO (id_usuario, nm_crypto, qt_crypto, vl_unitario_usd, tp_transacao) values (?, ?, ?, ?, ?)", session["id_usuario"], crypto, quantidade, preco, "BUY")
+        db.execute("insert into T_TRANSACAO (id_usuario, nm_crypto, qt_crypto, vl_unitario_usd, tp_transacao) values (?, ?, ?, ?, ?)", session["id_usuario"], crypto, quantidade, preco, "B")
         db.execute("COMMIT")
     except Exception as e:
         print(e)
@@ -450,7 +470,7 @@ def sell(crypto):
     valor_total_venda = preco * quantidade_venda
     try:
         db.execute("BEGIN TRANSACTION")
-        db.execute("insert into T_TRANSACAO (id_usuario, nm_crypto, qt_crypto, vl_unitario_usd, tp_transacao) values (?, ?, ?, ?, ?)", session["id_usuario"], crypto, -quantidade_venda, preco, "SELL")
+        db.execute("insert into T_TRANSACAO (id_usuario, nm_crypto, qt_crypto, vl_unitario_usd, tp_transacao) values (?, ?, ?, ?, ?)", session["id_usuario"], crypto, -quantidade_venda, preco, "S")
         db.execute("update T_USUARIO set qt_dinheiro = qt_dinheiro + ? where id_usuario = ?", valor_total_venda, session["id_usuario"])
         db.execute("COMMIT")
     except Exception as e:
