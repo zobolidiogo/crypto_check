@@ -3,6 +3,7 @@ import resend
 import time
 import os
 
+from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
 from datetime import datetime
 from flask import render_template, session, redirect
@@ -27,12 +28,42 @@ cache_historico = {}
 session_requests = requests.Session()
 session_requests.headers.update(keys)
 
+def db_execute_many(db, queries):
+    try:
+        with db.cursor() as sintaxe:
+            for query, params in queries:
+                sintaxe.execute(query, params)
+
+        db.commit()
+        return True
+
+    except Exception as e:
+        db.rollback()
+        print(e)
+        return False
+
 def db_query(db, query, *params):
     try:
-        return db.execute(query, *params)
+        with db.cursor(cursor_factory=RealDictCursor) as sintaxe:
+            sintaxe.execute(query, params if params else None)
+            return sintaxe.fetchall()
+
     except Exception as e:
         print(e)
         return None
+    
+def db_execute(db, query, *params):
+    try:
+        with db.cursor() as sintaxe:
+            sintaxe.execute(query, params if params else None)
+
+        db.commit()
+        return True
+
+    except Exception as e:
+        db.rollback()
+        print(e)
+        return False
 
 def apology(mensagem):
     return render_template("apology.html", mensagem=mensagem)
@@ -134,8 +165,8 @@ def non_verified_required(f):
 
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if session.get("id_usuario") is None:
-            return redirect("/options", mensagem_verify="você já está verificado")
+        if session.get("st_email_verificado") is True:
+            return redirect("/options")
         return f(*args, **kwargs)
     return decorated_function
 
