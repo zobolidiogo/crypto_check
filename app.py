@@ -163,20 +163,24 @@ def logout():
 
     return redirect("/")
 
+
+
+
+
 @app.route("/change/password")
 def change_password():
     return render_template("todo.html")
 
 @app.route("/change/display")
-def change_password():
+def change_display():
     return render_template("todo.html")
 
 @app.route("/change/picture")
-def change_password():
+def change_picture():
     return render_template("todo.html")
 
 @app.route("/delete")
-def change_password():
+def delete_account():
     return render_template("todo.html")
 
 
