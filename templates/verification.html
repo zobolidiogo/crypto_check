@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+
+{% block title %}Verificação{% endblock %}
+
+{% block content %}
+    <h1>Verificação de email</h1>
+
+    {% if mensagem %}
+        <p>{{ mensagem }}</p>
+    {% endif %}
+
+    <form action="/verify" method="post">
+        <div class="formulario">
+            <input type="number" autofocus class="pergunta" id="quantidade" name="codigo">
+        </div>
+        <button type="submit">Verificar</button>
+    </form>
+{% endblock %}

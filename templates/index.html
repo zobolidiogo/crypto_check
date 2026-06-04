@@ -3,7 +3,7 @@
 {% block title %}Início{% endblock %}
 
 {% block content %}
-<h2>Bem-vindo, {{ session.get("nm_usuario") }}!</h2>
+<h2>Bem-vindo, {{ session.get("nm_display") }}!</h2>
 
 {% if mensagem != "" %}
     <p>{{ mensagem }}</p>
@@ -24,7 +24,7 @@
             <tbody>
                 {% for crypto in portfolio %}
                 <tr>
-                    <td><a href="/market/{{ crypto['nm_crypto'] }}" class="link">{{ crypto["nm_crypto"] }}</a></td>
+                    <td><a href="/market/{{ crypto['nm_crypto'] }}" class="ask-link">{{ crypto["nm_crypto"] | primeira_letra_maiuscula }}</a></td>
                     <td>{{ "{:,.5f}".format(crypto["qt_compras"]).rstrip('0').rstrip('.') }}</td>
                     <td>{{ crypto["preco"] | usd }}</td>
                     <td>{{ crypto["valor_total"] | usd }}</td>

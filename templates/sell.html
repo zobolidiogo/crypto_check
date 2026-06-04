@@ -3,7 +3,7 @@
 {% block title %}Vender {{ crypto }}{% endblock %}
 
 {% block content %}
-<h1>Vender {{ crypto }}</h1>
+<h1>Vender {{ crypto | primeira_letra_maiuscula }}</h1>
 <p>Preço atual: {{ preco | usd }}</p>
 <br>
 <p> Você possui {{ "{:,.5f}".format(quantidade_possui).rstrip('0').rstrip('.') }} {{ crypto }}.</p>

@@ -1,11 +1,23 @@
 import os
+import random
+import psycopg2
 
-from helpers import db_query, index_crypto_func, apology, crypto_history_format_day, login_required, usd, brl, val_nome, val_senha
-from cs50 import SQL
 from flask import Flask, redirect, render_template, request, session
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 from dotenv import load_dotenv
+
+from helpers import (
+    primeira_letra_maiuscula, val_display,
+    db_execute_many,
+    db_query, db_execute,
+    crypto_history_format_day,
+    index_crypto_func,
+    login_required, apology,
+    non_verified_required, 
+    val_nome, val_senha,
+    val_email, usd, 
+    enviar_email)
 
 load_dotenv()
 
@@ -13,14 +25,13 @@ app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY")
 
 app.jinja_env.filters["usd"] = usd
-app.jinja_env.filters["brl"] = brl
+app.jinja_env.filters["primeira_letra_maiuscula"] = primeira_letra_maiuscula
 
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
-db = SQL(os.getenv("DATABASE_URL"))
-# db.execute("PRAGMA foreign_keys = ON")
+db = psycopg2.connect(os.getenv("DATABASE_URL"))
 
 cryptos = ["bitcoin", "tether", "ethereum", "solana", "cardano", "xrp", "dogecoin"]
 
@@ -31,6 +42,10 @@ def after_request(response):
     response.headers["Pragma"] = "no-cache"
     return response
 
+
+
+
+
 @app.route("/register", methods=["GET", "POST"])
 def register():
 
@@ -40,49 +55,67 @@ def register():
     if request.method == "GET":
         return render_template("register.html")
 
-    usuario = request.form.get("usuario")
+    email = request.form.get("email", "").strip().lower()
+    usuario = request.form.get("usuario", "").strip().lower()
     senha = request.form.get("senha")
     confirmacao = request.form.get("confirmacao")
+    nome_display = request.form.get("nome_display", "").strip() or usuario
 
+    if not email:
+        return render_template("register.html", mensagem="digite um email", usuario=usuario, nome_display=nome_display, email=email)
     if not usuario:
-        return render_template("register.html", mensagem="digite um nome de usuário", usuario=usuario)
-    
+        return render_template("register.html", mensagem="digite um nome de usuário", usuario=usuario, nome_display=nome_display, email=email)
     if not senha:
-        return render_template("register.html", mensagem="digite uma senha", usuario=usuario)
-    
+        return render_template("register.html", mensagem="digite uma senha", usuario=usuario, nome_display=nome_display, email=email)
+
     erro_senha = val_senha(senha)
     if erro_senha:
-        return render_template("register.html", mensagem=erro_senha, usuario=usuario)
-
+        return render_template("register.html", mensagem=erro_senha, usuario=usuario, nome_display=nome_display, email=email)
+    erro_display = val_display(nome_display)
+    if erro_display:
+        return render_template("register.html", mensagem=erro_display, usuario=usuario, nome_display=nome_display, email=email)
     erro_usuario = val_nome(usuario)
     if erro_usuario:
-        return render_template("register.html", mensagem=erro_usuario, usuario=usuario)
+        return render_template("register.html", mensagem=erro_usuario, usuario=usuario, nome_display=nome_display, email=email)
+    erro_email = val_email(email)
+    if erro_email:
+        return render_template("register.html", mensagem=erro_email, usuario=usuario, nome_display=nome_display, email=email)
 
     if confirmacao != senha:
-        return render_template("register.html", mensagem="as senhas não conferem", usuario=usuario)
+        return render_template("register.html", mensagem="as senhas não conferem", usuario=usuario, nome_display=nome_display, email=email)
 
-    rows = db_query(db, "select nm_usuario from T_USUARIO where nm_usuario = ?", usuario)
-    if rows is None:
-        return render_template("register.html", mensagem="erro ao acessar o banco de dados", usuario=usuario)
-    
-    if len(rows):
-        return render_template("register.html", mensagem="o usuário já existe", usuario=usuario)
-    
+    rows_nome = db_query(db, "select nm_usuario from T_USUARIO where nm_usuario = %s", usuario)
+    if rows_nome is None:
+        return render_template("register.html", mensagem="erro ao acessar o banco de dados", usuario=usuario, nome_display=nome_display, email=email)
+    if len(rows_nome):
+        return render_template("register.html", mensagem="o usuário já existe", usuario=usuario, nome_display=nome_display, email=email)
+
+    rows_email = db_query(db, "select ds_email from T_USUARIO where ds_email = %s", email)
+    if rows_email is None:
+        return render_template("register.html", mensagem="erro ao acessar o banco de dados", usuario=usuario, nome_display=nome_display, email=email)
+    if len(rows_email):
+        return render_template("register.html", mensagem="o email já está em uso", usuario=usuario, nome_display=nome_display, email=email)
+
     hash = generate_password_hash(senha)
 
-    try:
-        db.execute("insert into T_USUARIO (nm_usuario, cd_hash) values (?, ?)", usuario, hash)
-    except Exception as e:
-        return render_template("register.html", mensagem="erro ao cadastrar usuário", usuario=usuario)
-    
-    rows = db_query(db, "select id_usuario, nm_usuario from T_USUARIO where nm_usuario = ?", usuario)
+    if not db_execute(db, "insert into T_USUARIO (nm_display, nm_usuario, ds_email, cd_hash) values (%s, %s, %s, %s)", nome_display, usuario, email, hash):
+        return render_template("register.html", mensagem="erro ao cadastrar usuário", usuario=usuario, nome_display=nome_display, email=email)
+
+    rows = db_query(db, "select id_usuario, nm_usuario, nm_display, ds_email, st_email_verificado, ds_foto_perfil from T_USUARIO where nm_usuario = %s and ds_email = %s", usuario, email)
     if rows is None:
-        return render_template("register.html", mensagem="erro ao acessar o banco de dados", usuario=usuario)
+        return render_template("register.html", mensagem="erro ao acessar o banco de dados", usuario=usuario, nome_display=nome_display, email=email)
 
     session["id_usuario"] = rows[0]["id_usuario"]
     session["nm_usuario"] = rows[0]["nm_usuario"]
-
+    session["nm_display"] = rows[0]["nm_display"]
+    session["ds_email"] = rows[0]["ds_email"]
+    session["st_email_verificado"] = rows[0]["st_email_verificado"]
+    session["ds_foto_perfil"] = rows[0]["ds_foto_perfil"]
     return redirect("/")
+
+
+
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -93,26 +126,35 @@ def login():
     if request.method == "GET":
         return render_template("login.html")
     
-    usuario = request.form.get("usuario")
+    usuario_email = request.form.get("usuario", "").strip().lower()
     senha = request.form.get("senha")
 
-    if not usuario:
-        return render_template("login.html", mensagem="favor prover um usuário", usuario=usuario)
-    
+    if not usuario_email:
+        return render_template("login.html", mensagem="favor prover um usuário", usuario=usuario_email)
+
     if not senha:
-        return render_template("login.html", mensagem="favor prover uma senha", usuario=usuario)
-    
-    rows = db_query(db, "select id_usuario, nm_usuario, cd_hash from T_USUARIO where nm_usuario = ?", usuario)
+        return render_template("login.html", mensagem="favor prover uma senha", usuario=usuario_email)
+
+    variavel = "nm_usuario" if "@" not in usuario_email else "ds_email"
+
+    rows = db_query(db, f"select id_usuario, nm_usuario, nm_display, ds_email, st_email_verificado, cd_hash, ds_foto_perfil from T_USUARIO where {variavel} = %s", usuario_email)
     if rows is None:
-        return render_template("login.html", mensagem="erro ao acessar o banco de dados", usuario=usuario)
+        return render_template("login.html", mensagem="erro ao acessar o banco de dados", usuario=usuario_email)
 
     if len(rows) != 1 or not check_password_hash(rows[0]["cd_hash"], senha):
-        return render_template("login.html", mensagem="usuário e/ou senha inválido(s)", usuario=usuario)
+        return render_template("login.html", mensagem="usuário e/ou senha inválido(s)", usuario=usuario_email)
     
     session["id_usuario"] = rows[0]["id_usuario"]
     session["nm_usuario"] = rows[0]["nm_usuario"]
-
+    session["nm_display"] = rows[0]["nm_display"]
+    session["ds_email"] = rows[0]["ds_email"]
+    session["st_email_verificado"] = rows[0]["st_email_verificado"]
+    session["ds_foto_perfil"] = rows[0]["ds_foto_perfil"]
     return redirect("/")
+
+
+
+
 
 @app.route("/logout")
 def logout():
@@ -121,17 +163,154 @@ def logout():
 
     return redirect("/")
 
+
+
+
+
+@app.route("/change/password")
+def change_password():
+    return render_template("todo.html")
+
+@app.route("/change/display")
+def change_display():
+    return render_template("todo.html")
+
+@app.route("/change/picture")
+def change_picture():
+    return render_template("todo.html")
+
+@app.route("/delete")
+def delete_account():
+    return render_template("todo.html")
+
+
+
+
+
+@app.route("/options")
+@login_required
+def options(): ## opções: verificar email | trocar de senha | alterar foto de perfil | alterar nome de visualização
+    return render_template("options.html", display=session["nm_display"], usuario=session["nm_usuario"], email=session["ds_email"], verificado=session["st_email_verificado"], foto=session["ds_foto_perfil"])
+
+
+
+
+
+@app.route("/verify", methods=["GET", "POST"])
+@login_required
+@non_verified_required
+def verify():
+
+    if request.method == "GET":
+
+        row = db_query(db,
+            """select
+                cd_codigo,
+                extract(epoch from (dt_expiracao - now())) / 60 as minutos_restantes,
+                extract(epoch from (now() - dt_ultimo_envio)) / 60 as minutos_desde_envio
+            from T_CODIGO_EMAIL
+            where id_usuario = %s
+              and tp_codigo = 'E'
+              and dt_expiracao > now()
+            order by dt_expiracao desc
+            limit 1""", session["id_usuario"])
+
+        enviar = False
+
+        if row and float(row[0]["minutos_restantes"]) > 5:
+
+            codigo = row[0]["cd_codigo"]
+
+            if float(row[0]["minutos_desde_envio"]) >= 2:
+                enviar = True
+
+        else:
+
+            codigo = random.randint(1000, 9999)
+
+            if not db_execute_many(db, [
+                (
+                    "delete from T_CODIGO_EMAIL where id_usuario = %s and tp_codigo = 'E'", 
+                    (session["id_usuario"],)
+                ),
+                (
+                    "insert into T_CODIGO_EMAIL (id_usuario, cd_codigo, tp_codigo, dt_expiracao, dt_ultimo_envio) values (%s, %s, 'E', now() + interval '15 minutes', now() )", 
+                    (session["id_usuario"], codigo)
+                )]):
+                    return apology("erro ao acessar banco de dados")
+
+            enviar = True
+
+        if enviar:
+
+            try:
+                enviar_email(
+                    session["ds_email"],
+                    "[CRYPTO.CHECK] Verificação email",
+                    f"""
+                    <p>Olá, {session["nm_display"]}</p>
+                    <p>Obrigado por usar crypto.check</p>
+                    <p>Seu código de verificação é: {codigo}</p>
+                    <p>Este código é válido por 15 minutos</p>
+                    """
+                )
+            except Exception:
+                return apology("não foi possível enviar email de verificação")
+
+            if not db_execute(db, "update T_CODIGO_EMAIL set dt_ultimo_envio = now() where id_usuario = %s and tp_codigo = 'E'", session["id_usuario"]):
+                return apology("erro ao gerar código de verificação, favor tentar novamente em alguns minutos")
+
+        return render_template("verification.html", mensagem="código enviado por email")
+
+    codigo = request.form.get("codigo")
+
+    row = db_query(db,
+        """select cd_codigo
+        from T_CODIGO_EMAIL
+        where id_usuario = %s
+          and tp_codigo = 'E'
+          and dt_expiracao > now()
+        order by dt_expiracao desc
+        limit 1""", session["id_usuario"])
+
+    if row is None:
+        return apology("erro ao acessar banco de dados")
+
+    if not codigo:
+        return render_template("verification.html", mensagem="digite o código de verificação enviado para seu email")
+
+    if not row:
+        return render_template("verification.html", mensagem="código inválido ou expirado")
+
+    if codigo != str(row[0]["cd_codigo"]):
+        return render_template("verification.html", mensagem="código inválido ou expirado")
+
+    if not db_execute_many(db, [
+        (
+            "update T_USUARIO set st_email_verificado = true where id_usuario = %s", 
+            (session["id_usuario"],)
+        ),
+        (
+            "delete from T_CODIGO_EMAIL where id_usuario = %s and tp_codigo = 'E'", 
+            (session["id_usuario"],)
+        )]):
+
+        return apology("erro ao acessar o banco de dados")
+
+    session["st_email_verificado"] = True
+
+    return redirect("/options")
+
+
+
+
+
+
 @app.route("/")
 @login_required
 def index():
 
-    rows = db_query(db, """
-        select nm_crypto, sum(qt_crypto) as qt_compras
-        from T_TRANSACAO
-        where id_usuario = ?
-        group by nm_crypto
-        having sum(qt_crypto) > 0
-    """, session["id_usuario"])
+    rows = db_query(db, "select nm_crypto, sum(qt_crypto) as qt_compras from T_TRANSACAO where id_usuario = %s group by nm_crypto having sum(qt_crypto) > 0", session["id_usuario"])
 
     if rows is None:
         return apology("erro ao acessar o banco de dados")
@@ -177,7 +356,7 @@ def index():
     if not portfolio:
         mensagem = "Você não possui nenhuma compra"
 
-    row_dinheiro = db_query(db, "select qt_dinheiro from T_USUARIO where id_usuario = ?", session["id_usuario"])
+    row_dinheiro = db_query(db, "select qt_dinheiro from T_USUARIO where id_usuario = %s", session["id_usuario"])
     if row_dinheiro is None:
         return apology("erro ao acessar o banco de dados")
 
@@ -186,6 +365,10 @@ def index():
     total += dinheiro
 
     return render_template("index.html", portfolio=portfolio, total=total, dinheiro=dinheiro, mensagem=mensagem)
+
+
+
+
 
 @app.route("/market")
 def market():
@@ -221,6 +404,11 @@ def market():
 
     return render_template("market.html", estoques=estoques)
 
+
+
+
+
+
 @app.route("/market/<crypto>")
 def pagina_crypto(crypto):
 
@@ -250,11 +438,15 @@ def pagina_crypto(crypto):
 
     return render_template("crypto.html", days=days, crypto=crypto, preco=preco, historico=historico, max_preco=max_preco, min_preco=min_preco)
 
+
+
+
+
 @app.route("/buy/<crypto>", methods=["GET", "POST"])
 @login_required
 def buy(crypto):
 
-    row_usuario = db_query(db, "select qt_dinheiro from T_USUARIO where id_usuario = ?", session["id_usuario"])
+    row_usuario = db_query(db, "select qt_dinheiro from T_USUARIO where id_usuario = %s", session["id_usuario"])
     if row_usuario is None:
         return apology("erro ao acessar o banco de dados")
 
@@ -292,17 +484,24 @@ def buy(crypto):
     if custo_total > dinheiro:
         return apology("dinheiro insuficiente para esta compra")
     
-    try:
-        db.execute("BEGIN TRANSACTION")
-        db.execute("update T_USUARIO set qt_dinheiro = qt_dinheiro - ? where id_usuario = ?", custo_total, session["id_usuario"])
-        db.execute("insert into T_TRANSACAO (id_usuario, nm_crypto, qt_crypto, vl_unitario_usd, tp_transacao) values (?, ?, ?, ?, ?)", session["id_usuario"], crypto, quantidade, preco, "BUY")
-        db.execute("COMMIT")
-    except Exception as e:
-        print(e)
-        db.execute("ROLLBACK")
-        return apology("erro ao acessar o banco de dados")
+    
+    if not db_execute_many(db, [
+        (
+            "update T_USUARIO set qt_dinheiro = qt_dinheiro - %s where id_usuario = %s",
+            (custo_total, session["id_usuario"])
+        ),
+        (
+            "insert into T_TRANSACAO (id_usuario, nm_crypto, qt_crypto, vl_unitario_usd, tp_transacao) values (%s, %s, %s, %s, 'B')",
+            (session["id_usuario"], crypto, quantidade, preco)
+        )]):
+
+        return apology("erro ao acessar banco de dados")
 
     return redirect("/")
+
+
+
+
 
 @app.route("/sell/<crypto>", methods=["GET", "POST"])
 @login_required
@@ -321,7 +520,7 @@ def sell(crypto):
     if preco is None:
         return apology("não foi possível obter o preço da criptomoeda")
     
-    row = db_query(db, "select sum(qt_crypto) as qt_total from T_TRANSACAO where id_usuario = ? and nm_crypto = ?", session["id_usuario"], crypto)
+    row = db_query(db, "select sum(qt_crypto) as qt_total from T_TRANSACAO where id_usuario = %s and nm_crypto = %s", session["id_usuario"], crypto)
     if row is None:
         return apology("erro ao acessar o banco de dados")
     
@@ -350,26 +549,44 @@ def sell(crypto):
         return apology("você não possui esta quantidade da criptomoeda para vender")
     
     valor_total_venda = preco * quantidade_venda
-    try:
-        db.execute("BEGIN TRANSACTION")
-        db.execute("insert into T_TRANSACAO (id_usuario, nm_crypto, qt_crypto, vl_unitario_usd, tp_transacao) values (?, ?, ?, ?, ?)", session["id_usuario"], crypto, -quantidade_venda, preco, "SELL")
-        db.execute("update T_USUARIO set qt_dinheiro = qt_dinheiro + ? where id_usuario = ?", valor_total_venda, session["id_usuario"])
-        db.execute("COMMIT")
-    except Exception as e:
-        print(e)
-        db.execute("ROLLBACK")
+    if not db_execute_many(db, [
+        (
+            "insert into T_TRANSACAO (id_usuario, nm_crypto, qt_crypto, vl_unitario_usd, tp_transacao) values (%s, %s, %s, %s, 'S')", 
+            (session["id_usuario"], crypto, -quantidade_venda, preco)
+        ),
+        (
+            "update T_USUARIO set qt_dinheiro = qt_dinheiro + %s where id_usuario = %s", 
+            (valor_total_venda, session["id_usuario"])
+        )]):
+
         return apology("erro ao acessar o banco de dados")
+    
     return redirect("/")
+
+
+
+
 
 @app.route("/history")
 @login_required
 def history():
-    transactions = db_query(db, "select nm_crypto, qt_crypto, vl_unitario_usd, tp_transacao, dt_transacao from T_TRANSACAO where id_usuario = ? order by dt_transacao desc", session["id_usuario"])
+    transactions = db_query(db, "select nm_crypto, qt_crypto, vl_unitario_usd, tp_transacao, dt_transacao from T_TRANSACAO where id_usuario = %s order by dt_transacao desc", session["id_usuario"])
     if transactions is None:
         return apology("erro ao acessar o banco de dados")
     
     return render_template("history.html", transactions=transactions)
 
+
+
+
+
 @app.route("/about")
 def about():
     return render_template("about.html")
+
+
+
+
+
+if __name__ == "__main__":
+    app.run(debug=True)
