@@ -209,17 +209,29 @@ def verify():
 
     codigo = request.form.get("codigo")
 
-    row = db_query("select cd_codigo from T_CODIGO_EMAIL where id_usuario = ? and tp_codigo = 'E' and dt_expiracao > NOW()", session["id_usuario"])[0]
+    row = db_query(db, "select cd_codigo from T_CODIGO_EMAIL where id_usuario = ? and tp_codigo = 'E' and dt_expiracao > NOW()", session["id_usuario"])
     if row is None:
         return apology("erro ao acessar banco de dados")
 
-    if codigo == row:
-        try:
-            db.execute("update T_USUARIO set st_email_verificado = True where id_usuario = ?", session["id_usuario"])
-        except Exception as e:
-            print(e)
-            db.execute("ROLLBACK")
-            return apology("erro ao acessar o banco de dados")
+    if not codigo:
+        return render_template("verification.html", mensagem="digite o código de verificação enviado para seu email")
+
+    if not row:
+        return render_template("verification.html", mensagem="código inválido ou expirado")
+
+    row = row[0]
+
+    if codigo != str(row["cd_codigo"]):
+        return render_template("verification.html", mensagem="código inválido ou expirado")
+    
+    try:
+        db.execute("update T_USUARIO set st_email_verificado = True where id_usuario = ?", session["id_usuario"])
+    except Exception as e:
+        print(e)
+        db.execute("ROLLBACK")
+        return apology("erro ao acessar o banco de dados")
+    
+    session["st_email_verificado"] = True
 
     return redirect("/options")
 
