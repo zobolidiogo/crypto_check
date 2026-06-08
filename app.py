@@ -2,6 +2,7 @@ import os
 import random
 import psycopg2
 
+from decimal import Decimal
 from flask import Flask, redirect, render_template, request, session
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -338,7 +339,7 @@ def index():
         if crypto not in precos:
             continue
 
-        preco = precos[crypto][moeda]
+        preco = Decimal(str(precos[crypto][moeda]))
 
         valor_total = preco * row["qt_compras"]
 
